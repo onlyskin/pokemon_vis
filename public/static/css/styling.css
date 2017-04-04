@@ -1,0 +1,29 @@
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+h3 {
+    color: black;
+    text-align:center;  
+    font-style: normal;
+    font-size: 20px;
+    font-family: "Helvetica";
+}
+
+#threshold {
+	font-size: 20px;
+	text-align: center;
+    font-family: "Helvetica";
+}
+
+/*
+body {
+    background-color: black;
+}
+*/

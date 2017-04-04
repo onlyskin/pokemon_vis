@@ -1,0 +1,8 @@
+#!/bin/bash
+
+mkdir pokeapi_cache_sprites
+
+for ((i=$1;i<=$2;i++)); do
+	echo "getting $i"
+    curl "http://pokeapi.co/media/sprites/pokemon/$i.png" > "sprites/pokeapi_cache_sprites/$i.png"
+done

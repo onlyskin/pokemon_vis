@@ -1,0 +1,8 @@
+#!/bin/bash
+
+mkdir pokeapi_cache_sprites_yellow
+
+for ((i=$1;i<=$2;i++)); do
+	echo "getting $i"
+    curl "http://www.serebii.net/pokearth/sprites/yellow/$i.png" > "sprites/pokeapi_cache_sprites_original_games/$i.png"
+done

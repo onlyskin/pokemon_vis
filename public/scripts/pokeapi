@@ -1,0 +1,8 @@
+#!/bin/bash
+
+mkdir pokeapi_cache
+
+for ((i=$1;i<=$2;i++)); do
+	echo "getting $i"
+    curl "http://pokeapi.co/api/v2/pokemon/$i/" > "pokeapi_cache/$i.json"
+done
