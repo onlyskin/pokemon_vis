@@ -4,12 +4,24 @@
   <title>Move Graph 1</title>
   <script type="text/javascript" charset="UTF-8" src="static/js/d3.min.js"></script>
   <link rel="stylesheet" type="text/css" href="static/css/styling.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato:100|Press+Start+2P" rel="stylesheet">
 </head>
 <body>
-    <form>
-        <h3> Link threshold: <input type="number" id="threshold" name="points" value="20" min="0" max="20"></h3>
-    </form>
-  <div id="move_to_line_thickness"></div>
-  <script src="static/js/move_to_line_thickness.js"></script>
+
+	<wrapper>
+		<div id="title">A force directed graph created with D3.js: visually mapping links between Pokémon based on the number of shared moves in their movesets.</div>
+		<div id="about">
+			<p>Two Pokémon will have a link drawn between them if the number of moves they share is <em>more than or equal to</em> the threshold. For example, as Bulbasaur, Ivysaur and Venusaur all share the same 14 moves in their moveset, if you set the threshold to 14 or less, they will have links drawn between them, but if the threshold is set any higher than 14 there will be no link drawn.</p>
+			<p>The higher you set the threshold, the fewer links will be drawn. This is because fewer Pokémon share so many of their moves with other Pokémon.</p>
+			<p>You can adjust the threshold for the number of shared moves needed using the input box below.<p>
+			<p>You can also drag Pokémon around using the mouse.</p>
+		</div>
+	    <form>Link threshold:
+	    	<input type="number" id="threshold" name="points" value="5" min="1" max="20">
+	    </form>
+		<div id="svg_container"></div>
+	</wrapper>
+
+<script src="static/js/move_to_line_thickness.js"></script>
 </body>
 </html>

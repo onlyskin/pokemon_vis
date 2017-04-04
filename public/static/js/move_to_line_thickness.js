@@ -1,4 +1,4 @@
-d3.json("static/data/moves.json", function(error, graph) {
+d3.json("static/data/force_data_151.json", function(error, graph) {
   if (error) throw error;
 
   var filtered_links = [],
@@ -13,11 +13,9 @@ d3.json("static/data/moves.json", function(error, graph) {
   var padding = 1,
       radius = image_size/2;
 
-  var svg = d3.select("#move_to_line_thickness").append("svg")
+  var svg = d3.select("#svg_container").append("svg")
     .attr("width", width)
-    .attr("height", height)
-    .attr("fill", "black")
-    .attr("style", "outline: thin solid gray");
+    .attr("height", height);
 
   svg.append("g").attr("id", "links");
   svg.append("g").attr("id", "nodes");
@@ -59,29 +57,29 @@ d3.json("static/data/moves.json", function(error, graph) {
   };
 
   function collide(alpha) {
-  var quadtree = d3.geom.quadtree(graph.nodes);
-  return function(d) {
-    var rb = 2*radius + padding,
-        nx1 = d.x - rb,
-        nx2 = d.x + rb,
-        ny1 = d.y - rb,
-        ny2 = d.y + rb;
-    quadtree.visit(function(quad, x1, y1, x2, y2) {
-      if (quad.point && (quad.point !== d)) {
-        var x = d.x - quad.point.x,
-            y = d.y - quad.point.y,
-            l = Math.sqrt(x * x + y * y);
-          if (l < rb) {
-          l = (l - rb) / l * alpha;
-          d.x -= x *= l;
-          d.y -= y *= l;
-          quad.point.x += x;
-          quad.point.y += y;
+    var quadtree = d3.geom.quadtree(graph.nodes);
+    return function(d) {
+      var rb = 2*radius + padding,
+          nx1 = d.x - rb,
+          nx2 = d.x + rb,
+          ny1 = d.y - rb,
+          ny2 = d.y + rb;
+      quadtree.visit(function(quad, x1, y1, x2, y2) {
+        if (quad.point && (quad.point !== d)) {
+          var x = d.x - quad.point.x,
+              y = d.y - quad.point.y,
+              l = Math.sqrt(x * x + y * y);
+            if (l < rb) {
+            l = (l - rb) / l * alpha;
+            d.x -= x *= l;
+            d.y -= y *= l;
+            quad.point.x += x;
+            quad.point.y += y;
+          }
         }
-      }
-      return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-    });
-  };
+        return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+      });
+    };
   }
 
   function update(threshold) {
@@ -91,7 +89,7 @@ d3.json("static/data/moves.json", function(error, graph) {
     else {radius = image_size/2; force.gravity(0.1).alpha(0.1);}
 
     filtered_links.splice(0, filtered_links.length);
-    Array.prototype.push.apply(filtered_links, graph.links.filter(function (d) {return d.value > threshold; }));
+    Array.prototype.push.apply(filtered_links, graph.links.filter(function (d) {return d.value >= threshold; }));
 
     function name(link) {
       return "" + link.source.index + "-" + link.target.index;
@@ -123,7 +121,7 @@ d3.json("static/data/moves.json", function(error, graph) {
                                       }
                                      };
                                     })*/
-      .attr("xlink:href", function(d) { return "pokeapi_cache_sprites_gold/" + d.number + ".png"})
+      .attr("xlink:href", function(d) { return "sprites/pokeapi_cache_sprites_gold/" + d.number + ".png"})
       .attr("width", image_size + "px")
       .attr("height", image_size + "px")
       .call(force.drag);
@@ -134,7 +132,7 @@ d3.json("static/data/moves.json", function(error, graph) {
   }
 
   update(0);
-  update(20);
+  update(10);
 
   d3.select("#threshold").on("input", function() {
     update(+this.value);

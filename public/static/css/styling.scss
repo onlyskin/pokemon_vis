@@ -1,7 +1,8 @@
 p {
   margin: 0px;
   margin-bottom: 5px;
-  padding: 0px; }
+  padding: 0px;
+}
 
 body {
   display: flex;
@@ -15,43 +16,56 @@ body {
   border-left: 2px solid white;
   border-right: 2px solid white;
   margin: 8px;
-  padding: 5px; }
+  padding: 5px;
+}
 
 wrapper {
   display: flex;
-  flex-direction: column; }
+  flex-direction: column;
+}
 
 #title, #about, form {
-  padding: 20px; }
+  padding: 20px;
+}
 
 #title {
   font-size: 15px;
-  padding-bottom: 5px; }
+  padding-bottom: 5px;
+}
 
 #about {
   column-count: 3;
   column-gap: 30px;
-  text-align: justify; }
+  text-align: justify;
+}
 
 #svg_container {
   display: flex;
   justify-content: center;
-  padding-bottom: 20px; }
-  #svg_container .link {
+  padding-bottom: 20px;
+
+  .link {
     stroke: #999;
-    stroke-opacity: 0.5; }
+    stroke-opacity: 0.5;
+  }
+
+}
 
 form {
   display: flex;
-  align-items: center; }
-  form input {
+  align-items: center;
+
+  input {
     font-size: 50px;
     text-align: center;
     background-color: black;
     color: white;
-    border: none; }
+    border: none;
+  }
+
+}
 
 svg {
-  border: 2px solid white; }
+  border: 2px solid white;
+}
 
-/*# sourceMappingURL=styling.css.map */

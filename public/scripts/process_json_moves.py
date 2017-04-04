@@ -50,7 +50,7 @@ def process_json_dict_for_moves(dict):
 def dump_moves_dict_to_json(processed_dict):
 	return json.dumps(processed_dict)
 
-json_dict = load_all_json_to_dict(1, 251)
+json_dict = load_all_json_to_dict(1, 151)
 processed = process_json_dict_for_moves(json_dict)
 print dump_moves_dict_to_json(processed)
 #print json.dumps(processed, sort_keys=True, indent=4, separators=(',', ': '))
