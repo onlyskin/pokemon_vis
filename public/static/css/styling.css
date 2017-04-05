@@ -34,8 +34,10 @@ wrapper {
   text-align: justify; }
 
 #svg_container {
+  position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding-bottom: 20px; }
   #svg_container .link {
     stroke: #999;
@@ -43,11 +45,14 @@ wrapper {
 
 form {
   display: flex;
-  align-items: center; }
+  align-self: flex-start;
+  margin-left: 100px;
+  margin-top: 50px;
+  position: absolute; }
   form input {
     font-size: 50px;
     text-align: center;
-    background-color: black;
+    background-color: transparent;
     color: white;
     border: none; }
 

@@ -13,9 +13,7 @@ d3.json("static/data/force_data_151.json", function(error, graph) {
   var padding = 1,
       radius = image_size/2;
 
-  var svg = d3.select("#svg_container").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+  var svg = d3.select("svg");
 
   svg.append("g").attr("id", "links");
   svg.append("g").attr("id", "nodes");

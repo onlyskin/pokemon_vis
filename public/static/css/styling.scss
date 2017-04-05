@@ -40,8 +40,10 @@ wrapper {
 }
 
 #svg_container {
+  position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding-bottom: 20px;
 
   .link {
@@ -53,12 +55,15 @@ wrapper {
 
 form {
   display: flex;
-  align-items: center;
+  align-self: flex-start;
+  margin-left: 100px;
+  margin-top: 50px;
+  position: absolute;
 
   input {
     font-size: 50px;
     text-align: center;
-    background-color: black;
+    background-color: transparent;
     color: white;
     border: none;
   }

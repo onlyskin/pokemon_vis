@@ -16,10 +16,12 @@
 			<p>You can adjust the threshold for the number of shared moves needed using the input box below.<p>
 			<p>You can also drag Pokémon around using the mouse.</p>
 		</div>
-	    <form>Link threshold:
-	    	<input type="number" id="threshold" name="points" value="6" min="1" max="20">
-	    </form>
-		<div id="svg_container"></div>
+		<div id="svg_container">
+            <svg width="1200" height="1200"></svg>
+	        <form>Link threshold:
+	    	    <input type="number" id="threshold" name="points" value="6" min="1" max="20">
+	        </form>
+        </div>
 	</wrapper>
 
 <script src="static/js/move_to_line_thickness.js"></script>
