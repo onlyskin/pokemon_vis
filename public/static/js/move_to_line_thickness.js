@@ -132,7 +132,7 @@ d3.json("static/data/force_data_151.json", function(error, graph) {
   }
 
   update(0);
-  update(10);
+  update(6);
 
   d3.select("#threshold").on("input", function() {
     update(+this.value);
