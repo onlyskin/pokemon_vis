@@ -22,6 +22,7 @@ body {
 wrapper {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 #title, #about, form {
@@ -70,7 +71,24 @@ form {
 
 }
 
-svg {
-  border: 2px solid white;
+.tooltip {
+  background-color: Ivory;
+  color: black;
+  border: none;
+  position: absolute;
+  display: inline-block;
+  padding: 10px;
+  width: auto;
+
+  .heading {
+    font-size: 12px;
+  }
+  .movename {
+    font-size: 8px;
+  }
 }
 
+svg {
+  height: 1200;
+  width: 1200;
+}
