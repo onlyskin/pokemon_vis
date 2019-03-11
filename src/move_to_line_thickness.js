@@ -1,5 +1,6 @@
 const d3 = require('d3');
 const { Line, Coord, coordInRhombus } = require('./coordInRhombusVerifier');
+const { collide } = require('./collide');
 
 module.exports.runVisualisation = function() {
   d3.json("/force_data_151.json", function(error, graph) {
@@ -12,10 +13,7 @@ module.exports.runVisualisation = function() {
   
     var width = 1200,
       height = 1200,
-      image_size = 60;
-  
-    var padding = 1,
-        radius = image_size/2;
+      imageSize = 60;
   
     var svg = d3.select("svg")
       .attr('width', width)
@@ -32,7 +30,7 @@ module.exports.runVisualisation = function() {
       .links(filtered_links)
       .charge(-200)
       .chargeDistance(1000)
-      .linkDistance(image_size*0.6*2)
+      .linkDistance(imageSize*0.6*2)
   //    .linkDistance(function (link) { return ( link.value )*6 })
       .on("tick", tick);
   
@@ -44,10 +42,10 @@ module.exports.runVisualisation = function() {
         .attr("y2", function(d) { return d.target.y; });
   
       nodes
-        .attr("x", function(d) { return d.x - (image_size/2); })
-        .attr("y", function(d) { return d.y - (image_size/2); });
+        .attr("x", function(d) { return d.x - (imageSize/2); })
+        .attr("y", function(d) { return d.y - (imageSize/2); });
   
-      nodes.each(collide(0.1));
+      nodes.each(collide(0.1, imageSize, graph.nodes));
     }
   
     function stay_in_area() {
@@ -60,40 +58,17 @@ module.exports.runVisualisation = function() {
       //return Math.sqrt(value.value);
     };
   
-    function collide(alpha) {
-      var quadtree = d3.geom.quadtree(graph.nodes);
-      return function(d) {
-        var rb = 2*radius + padding,
-            nx1 = d.x - rb,
-            nx2 = d.x + rb,
-            ny1 = d.y - rb,
-            ny2 = d.y + rb;
-        quadtree.visit(function(quad, x1, y1, x2, y2) {
-          if (quad.point && (quad.point !== d)) {
-            var x = d.x - quad.point.x,
-                y = d.y - quad.point.y,
-                l = Math.sqrt(x * x + y * y);
-              if (l < rb) {
-              l = (l - rb) / l * alpha;
-              d.x -= x *= l;
-              d.y -= y *= l;
-              quad.point.x += x;
-              quad.point.y += y;
-            }
-          }
-          return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-        });
-      };
-    }
-  
     function update(threshold) {
   
       current_threshold = threshold;
-      if (current_threshold < 3) {radius = image_size; force.gravity(0.8).alpha(1);}
-      else {radius = image_size/2; force.gravity(0.1).alpha(0.1);}
+      if (current_threshold < 3) {radius = imageSize; force.gravity(0.8).alpha(1);}
+      else {radius = imageSize/2; force.gravity(0.1).alpha(0.1);}
   
       filtered_links.splice(0, filtered_links.length);
-      Array.prototype.push.apply(filtered_links, graph.links.filter(function (d) {return d.value >= threshold; }));
+      Array.prototype.push.apply(
+          filtered_links,
+          graph.links.filter(function (d) {return d.value >= threshold; })
+      );
   
       function name(link) {
         return "" + link.source.index + "-" + link.target.index;
@@ -128,8 +103,8 @@ module.exports.runVisualisation = function() {
                                        };
                                       })*/
         .attr("xlink:href", function(d) { return "sprites/" + d.number + ".png"})
-        .attr("width", image_size + "px")
-        .attr("height", image_size + "px")
+        .attr("width", imageSize + "px")
+        .attr("height", imageSize + "px")
         .call(force.drag)
         .on('mousemove', (d) => handleMousemove(d))
         .on('mouseout', (d) => removeTooltips());
