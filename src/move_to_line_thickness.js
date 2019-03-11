@@ -38,17 +38,18 @@ function draw(data) {
       .on("tick", tick);
   
     function tick() {
-      links
+      svg.select("#links")
+        .selectAll(".link")
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
   
-      nodes
+      svg.select("#nodes")
+        .selectAll(".node")
         .attr("x", function(d) { return d.x - (imageSize/2); })
-        .attr("y", function(d) { return d.y - (imageSize/2); });
-  
-      nodes.each(collide(0.1, imageSize, data.nodes));
+        .attr("y", function(d) { return d.y - (imageSize/2); })
+        .each(collide(0.1, imageSize, data.nodes));
     }
   
     function update(threshold) {
