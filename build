@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SRC=src
+OUT=out
+BROWSERIFY=node_modules/browserify/bin/cmd.js
+
+rm -rf $OUT
+mkdir -p $OUT
+mkdir -p $OUT/sprites
+
+$BROWSERIFY -o $OUT/index.bundle.js src/index.js
+
+cp index.html $OUT/index.html
+cp static/* $OUT/
+cp sprites/pokeapi_cache_sprites_gold/*.png $OUT/sprites/

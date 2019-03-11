@@ -1,0 +1,13 @@
+{
+  "name": "pokemon-vis",
+  "version": "1.0.0",
+  "repository": "https://github.com/onlyskin/pokemon_vis.git",
+  "author": "Sam Szreter <s.szreter@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "browserify": "^16.2.3",
+    "d3": "3.5.17",
+    "jasmine": "^3.3.1",
+    "pokeapi-js-wrapper": "^1.1.1"
+  }
+}
