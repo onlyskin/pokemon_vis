@@ -2,62 +2,64 @@ const d3 = require('d3');
 const { Line, Coord, coordInRhombus } = require('./coordInRhombusVerifier');
 const { collide } = require('./collide');
 
-var SPRITE_COLUMNS = 15;
-var IMAGE_SIZE = 150;
+const SPRITE_COLUMNS = 15;
+const IMAGE_SIZE = 150;
 const IMAGE_SET = 'gold';
 const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${IMAGE_SET}.png`;
+const SVG_WIDTH = 1200;
+const SVG_HEIGHT = 1200;
 
 module.exports.runVisualisation = function() {
   d3.json('/force_data_151.json', function(error, data) {
     if (error) throw error;
 
-    draw(data);
+    const svg = d3.select('svg');
+
+    draw(svg, data);
   });
 };
-  
-function draw(data) {
+
+function tick() {
+    const { svg, nodes } = this;
+
+    svg.select('#links')
+        .selectAll('.link')
+        .attr('x1', function(d) { return d.source.x; })
+        .attr('y1', function(d) { return d.source.y; })
+        .attr('x2', function(d) { return d.target.x; })
+        .attr('y2', function(d) { return d.target.y; });
+
+    svg.select('#nodes')
+        .selectAll('.node')
+        .attr('transform', d => {
+            const x = d.x - (IMAGE_SIZE/2);
+            const y = d.y - (IMAGE_SIZE/2);
+            return `translate(${x},${y})`;
+        })
+        .each(collide(0.1, IMAGE_SIZE, nodes));
+}
+
+function draw(svg, data) {
     const filtered_links = [];
   
-    const width = 1200;
-    const height = 1200;
-    const imageSize = IMAGE_SIZE;
-  
-    var svg = d3.select('svg')
-      .attr('width', width)
-      .attr('height', height);
+    svg
+      .attr('width', SVG_WIDTH)
+      .attr('height', SVG_HEIGHT);
   
     svg.append('g').attr('id', 'links');
     svg.append('g').attr('id', 'nodes');
   
     var force = d3.layout.force()
-      .size([width, height])
+      .size([SVG_WIDTH, SVG_HEIGHT])
       .gravity(0.1)
       .alpha(0.1)
       .nodes(data.nodes)
       .links(filtered_links)
       .charge(-200)
       .chargeDistance(1000)
-      .linkDistance(imageSize*0.6*2)
+      .linkDistance(IMAGE_SIZE*0.6*2)
   //    .linkDistance(function (link) { return ( link.value )*6 })
-      .on('tick', tick);
-  
-    function tick() {
-      svg.select('#links')
-        .selectAll('.link')
-        .attr('x1', function(d) { return d.source.x; })
-        .attr('y1', function(d) { return d.source.y; })
-        .attr('x2', function(d) { return d.target.x; })
-        .attr('y2', function(d) { return d.target.y; });
-  
-      svg.select('#nodes')
-        .selectAll('.node')
-        .attr('transform', d => {
-            const x = d.x - (imageSize/2);
-            const y = d.y - (imageSize/2);
-            return `translate(${x},${y})`;
-        })
-        .each(collide(0.1, imageSize, data.nodes));
-    }
+      .on('tick', tick.bind({svg: svg, nodes: data.nodes}));
   
     function update(threshold) {
       if (threshold < 3) {
