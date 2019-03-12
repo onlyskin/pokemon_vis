@@ -4,11 +4,11 @@ const { collide } = require('./collide');
 
 var SPRITE_COLUMNS = 15;
 var IMAGE_SIZE = 150;
-const IMAGE_SET = "gold";
+const IMAGE_SET = 'gold';
 const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${IMAGE_SET}.png`;
 
 module.exports.runVisualisation = function() {
-  d3.json("/force_data_151.json", function(error, data) {
+  d3.json('/force_data_151.json', function(error, data) {
     if (error) throw error;
 
     draw(data);
@@ -22,12 +22,12 @@ function draw(data) {
     const height = 1200;
     const imageSize = IMAGE_SIZE;
   
-    var svg = d3.select("svg")
+    var svg = d3.select('svg')
       .attr('width', width)
       .attr('height', height);
   
-    svg.append("g").attr("id", "links");
-    svg.append("g").attr("id", "nodes");
+    svg.append('g').attr('id', 'links');
+    svg.append('g').attr('id', 'nodes');
   
     var force = d3.layout.force()
       .size([width, height])
@@ -39,19 +39,19 @@ function draw(data) {
       .chargeDistance(1000)
       .linkDistance(imageSize*0.6*2)
   //    .linkDistance(function (link) { return ( link.value )*6 })
-      .on("tick", tick);
+      .on('tick', tick);
   
     function tick() {
-      svg.select("#links")
-        .selectAll(".link")
-        .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+      svg.select('#links')
+        .selectAll('.link')
+        .attr('x1', function(d) { return d.source.x; })
+        .attr('y1', function(d) { return d.source.y; })
+        .attr('x2', function(d) { return d.target.x; })
+        .attr('y2', function(d) { return d.target.y; });
   
-      svg.select("#nodes")
-        .selectAll(".node")
-        .attr("transform", d => {
+      svg.select('#nodes')
+        .selectAll('.node')
+        .attr('transform', d => {
             const x = d.x - (imageSize/2);
             const y = d.y - (imageSize/2);
             return `translate(${x},${y})`;
@@ -73,42 +73,42 @@ function draw(data) {
           data.links.filter(function (d) {return d.value >= threshold; })
       );
   
-      links = svg.select("#links")
-        .selectAll(".link")
+      links = svg.select('#links')
+        .selectAll('.link')
         .data(force.links(), link => `${link.source.index}-${link.target.index}`);
   
       links.enter()
-        .append("line")
-        .attr("class", "link")
-        .style("stroke-width", d => d.value)
+        .append('line')
+        .attr('class', 'link')
+        .style('stroke-width', d => d.value)
         .on('mousemove', d => handleMousemove(d))
         .on('mouseout', d => removeTooltips());
   
       links.exit().remove();
   
-      nodes = svg.select("#nodes")
-        .selectAll(".node")
+      nodes = svg.select('#nodes')
+        .selectAll('.node')
         .data(force.nodes());
   
       const groups = nodes.enter()
-        .append("g")
-        .attr("class", "node");
+        .append('g')
+        .attr('class', 'node');
 
       groups
-        .append("defs")
-        .append("clipPath")
-        .attr("id", d => `${d.name}-clip`)
-        .append("rect")
-        .attr("height", IMAGE_SIZE)
-        .attr("width", IMAGE_SIZE)
-        .attr("x", d => -xSpriteOffset(d.number))
-        .attr("y", d => -ySpriteOffset(d.number));
+        .append('defs')
+        .append('clipPath')
+        .attr('id', d => `${d.name}-clip`)
+        .append('rect')
+        .attr('height', IMAGE_SIZE)
+        .attr('width', IMAGE_SIZE)
+        .attr('x', d => -xSpriteOffset(d.number))
+        .attr('y', d => -ySpriteOffset(d.number));
 
       groups
-        .append("image")
-        .attr("xlink:href", SPRITE_URL)
-        .attr("clip-path", d => `url(#${d.name}-clip)`)
-        .attr("transform", d => {
+        .append('image')
+        .attr('xlink:href', SPRITE_URL)
+        .attr('clip-path', d => `url(#${d.name}-clip)`)
+        .attr('transform', d => {
             const offsetX = xSpriteOffset(d.number);
             const offsetY = ySpriteOffset(d.number);
             return `translate(${offsetX},${offsetY})`
@@ -125,7 +125,7 @@ function draw(data) {
     update(0);
     update(6);
   
-    d3.select("#threshold").on("input", function() {
+    d3.select('#threshold').on('input', function() {
       update(+this.value);
     });
 }
