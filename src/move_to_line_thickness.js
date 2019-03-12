@@ -4,6 +4,8 @@ const { collide } = require('./collide');
 
 const SPRITE_COLUMNS = 15;
 const IMAGE_SIZE = 150;
+const TARGET_IMAGE_SIZE = 60;
+const IMAGE_SCALE = TARGET_IMAGE_SIZE / IMAGE_SIZE;
 const IMAGE_SET = 'gold';
 const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${IMAGE_SET}.png`;
 const SVG_WIDTH = 1200;
@@ -32,11 +34,11 @@ function tick() {
     svg.select('#nodes')
         .selectAll('.node')
         .attr('transform', d => {
-            const x = d.x - (IMAGE_SIZE/2);
-            const y = d.y - (IMAGE_SIZE/2);
+            const x = d.x - (TARGET_IMAGE_SIZE/2);
+            const y = d.y - (TARGET_IMAGE_SIZE/2);
             return `translate(${x},${y})`;
         })
-        .each(collide(0.1, IMAGE_SIZE, nodes));
+        .each(collide(0.1, TARGET_IMAGE_SIZE, nodes));
 }
 
 function draw(svg, data) {
@@ -57,7 +59,7 @@ function draw(svg, data) {
       .links(filtered_links)
       .charge(-200)
       .chargeDistance(1000)
-      .linkDistance(IMAGE_SIZE*0.6*2)
+      .linkDistance(TARGET_IMAGE_SIZE*0.6*2)
   //    .linkDistance(function (link) { return ( link.value )*6 })
       .on('tick', tick.bind({svg: svg, nodes: data.nodes}));
   
@@ -103,17 +105,17 @@ function draw(svg, data) {
         .append('rect')
         .attr('height', IMAGE_SIZE)
         .attr('width', IMAGE_SIZE)
-        .attr('x', d => -xSpriteOffset(d.number))
-        .attr('y', d => -ySpriteOffset(d.number));
+        .attr('x', d => xSpriteOffset(d.number))
+        .attr('y', d => ySpriteOffset(d.number));
 
       groups
         .append('image')
         .attr('xlink:href', SPRITE_URL)
         .attr('clip-path', d => `url(#${d.name}-clip)`)
         .attr('transform', d => {
-            const offsetX = xSpriteOffset(d.number);
-            const offsetY = ySpriteOffset(d.number);
-            return `translate(${offsetX},${offsetY})`
+            const offsetX = -xSpriteOffset(d.number) * IMAGE_SCALE;
+            const offsetY = -ySpriteOffset(d.number) * IMAGE_SCALE;
+            return `translate(${offsetX},${offsetY}) scale(${IMAGE_SCALE})`
         })
         .call(force.drag)
         .on('mousemove', d => handleMousemove(d))
@@ -133,11 +135,11 @@ function draw(svg, data) {
 }
 
 function xSpriteOffset(index) {
-    return ((index - 1) % SPRITE_COLUMNS) * -IMAGE_SIZE;
+    return ((index - 1) % SPRITE_COLUMNS) * IMAGE_SIZE;
 }
 
 function ySpriteOffset(index) {
-    return (Math.floor((index - 1) / SPRITE_COLUMNS)) * -IMAGE_SIZE;
+    return (Math.floor((index - 1) / SPRITE_COLUMNS)) * IMAGE_SIZE;
 }
 
 function handleMousemove(d) {
