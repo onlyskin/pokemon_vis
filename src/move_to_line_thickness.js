@@ -12,7 +12,6 @@ module.exports.runVisualisation = function() {
   
 function draw(data) {
     const filtered_links = [];
-    const filtered_nodes = []
   
     const width = 1200;
     const height = 1200;
@@ -29,7 +28,7 @@ function draw(data) {
       .size([width, height])
       .gravity(0.1)
       .alpha(0.1)
-      .nodes(filtered_nodes)
+      .nodes(data.nodes)
       .links(filtered_links)
       .charge(-200)
       .chargeDistance(1000)
@@ -78,9 +77,6 @@ function draw(data) {
         .on('mouseout', d => removeTooltips());
   
       links.exit().remove();
-  
-      filtered_nodes.splice(0, filtered_nodes.length);
-      Array.prototype.push.apply(filtered_nodes, data.nodes);
   
       nodes = svg.select("#nodes").selectAll(".node")
         .data(force.nodes());
