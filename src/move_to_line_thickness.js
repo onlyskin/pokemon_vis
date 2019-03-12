@@ -2,6 +2,11 @@ const d3 = require('d3');
 const { Line, Coord, coordInRhombus } = require('./coordInRhombusVerifier');
 const { collide } = require('./collide');
 
+var SPRITE_COLUMNS = 15;
+var IMAGE_SIZE = 150;
+const IMAGE_SET = "gold";
+const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${IMAGE_SET}.png`;
+
 module.exports.runVisualisation = function() {
   d3.json("/force_data_151.json", function(error, data) {
     if (error) throw error;
@@ -15,7 +20,7 @@ function draw(data) {
   
     const width = 1200;
     const height = 1200;
-    const imageSize = 60;
+    const imageSize = IMAGE_SIZE;
   
     var svg = d3.select("svg")
       .attr('width', width)
@@ -46,8 +51,11 @@ function draw(data) {
   
       svg.select("#nodes")
         .selectAll(".node")
-        .attr("x", function(d) { return d.x - (imageSize/2); })
-        .attr("y", function(d) { return d.y - (imageSize/2); })
+        .attr("transform", d => {
+            const x = d.x - (imageSize/2);
+            const y = d.y - (imageSize/2);
+            return `translate(${x},${y})`;
+        })
         .each(collide(0.1, imageSize, data.nodes));
     }
   
@@ -67,7 +75,7 @@ function draw(data) {
   
       links = svg.select("#links")
         .selectAll(".link")
-        .data(force.links(), link => link.source.index + "-" + link.target.index);
+        .data(force.links(), link => `${link.source.index}-${link.target.index}`);
   
       links.enter()
         .append("line")
@@ -78,18 +86,36 @@ function draw(data) {
   
       links.exit().remove();
   
-      nodes = svg.select("#nodes").selectAll(".node")
+      nodes = svg.select("#nodes")
+        .selectAll(".node")
         .data(force.nodes());
   
-      nodes.enter()
+      const groups = nodes.enter()
+        .append("g")
+        .attr("class", "node");
+
+      groups
+        .append("defs")
+        .append("clipPath")
+        .attr("id", d => `${d.name}-clip`)
+        .append("rect")
+        .attr("height", IMAGE_SIZE)
+        .attr("width", IMAGE_SIZE)
+        .attr("x", d => -xSpriteOffset(d.number))
+        .attr("y", d => -ySpriteOffset(d.number));
+
+      groups
         .append("image")
-        .attr("class", "node")
-        .attr("xlink:href", function(d) { return "sprites/" + d.number + ".png"})
-        .attr("width", imageSize + "px")
-        .attr("height", imageSize + "px")
+        .attr("xlink:href", SPRITE_URL)
+        .attr("clip-path", d => `url(#${d.name}-clip)`)
+        .attr("transform", d => {
+            const offsetX = xSpriteOffset(d.number);
+            const offsetY = ySpriteOffset(d.number);
+            return `translate(${offsetX},${offsetY})`
+        })
         .call(force.drag)
-        .on('mousemove', (d) => handleMousemove(d))
-        .on('mouseout', (d) => removeTooltips());
+        .on('mousemove', d => handleMousemove(d))
+        .on('mouseout', d => removeTooltips());
   
       nodes.exit().remove();
   
@@ -102,6 +128,14 @@ function draw(data) {
     d3.select("#threshold").on("input", function() {
       update(+this.value);
     });
+}
+
+function xSpriteOffset(index) {
+    return ((index - 1) % SPRITE_COLUMNS) * -IMAGE_SIZE;
+}
+
+function ySpriteOffset(index) {
+    return (Math.floor((index - 1) / SPRITE_COLUMNS)) * -IMAGE_SIZE;
 }
 
 function handleMousemove(d) {
@@ -156,7 +190,7 @@ function makeTooltip(d, data) {
 
   tooltip.append('p')
     .attr('class', 'heading')
-    .text(data.source.name + '-' + data.target.name);
+    .text(`${data.source.name}-${data.target.name}`);
 
   data.shared_moves.map((o) => {
     tooltip.append('p')
