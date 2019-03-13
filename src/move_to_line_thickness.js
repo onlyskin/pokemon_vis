@@ -17,7 +17,32 @@ module.exports.runVisualisation = function() {
 
     const svg = d3.select('svg');
 
-    draw(svg, data);
+    svg
+      .attr('width', SVG_WIDTH)
+      .attr('height', SVG_HEIGHT);
+
+    svg.append('g').attr('id', 'links');
+    svg.append('g').attr('id', 'nodes');
+
+    const link_buffer = [];
+
+    var force = d3.layout.force()
+      .size([SVG_WIDTH, SVG_HEIGHT])
+      .gravity(0.1)
+      .alpha(0.1)
+      .charge(-200)
+      .chargeDistance(1000)
+      .linkDistance(TARGET_IMAGE_SIZE*0.6*2)
+      .on('tick', tick.bind({svg: svg, nodes: data.nodes}))
+      .nodes(data.nodes)
+      .links(link_buffer);
+
+    update(0, force, link_buffer, data, svg);
+    update(6, force, link_buffer, data, svg);
+
+    d3.select('#threshold').on('input', function() {
+      update(+this.value, force, link_buffer, data, svg);
+    });
   });
 };
 
@@ -41,39 +66,17 @@ function tick() {
         .each(collide(0.1, TARGET_IMAGE_SIZE, nodes));
 }
 
-function draw(svg, data) {
-    const filtered_links = [];
-  
-    svg
-      .attr('width', SVG_WIDTH)
-      .attr('height', SVG_HEIGHT);
-  
-    svg.append('g').attr('id', 'links');
-    svg.append('g').attr('id', 'nodes');
-  
-    var force = d3.layout.force()
-      .size([SVG_WIDTH, SVG_HEIGHT])
-      .gravity(0.1)
-      .alpha(0.1)
-      .nodes(data.nodes)
-      .links(filtered_links)
-      .charge(-200)
-      .chargeDistance(1000)
-      .linkDistance(TARGET_IMAGE_SIZE*0.6*2)
-  //    .linkDistance(function (link) { return ( link.value )*6 })
-      .on('tick', tick.bind({svg: svg, nodes: data.nodes}));
-  
-    function update(threshold) {
+function update(threshold, force, link_buffer, data, svg) {
       if (threshold < 3) {
           force.gravity(0.8).alpha(1);
       } else {
           force.gravity(0.1).alpha(0.1);
       }
   
-      filtered_links.splice(0, filtered_links.length);
+      link_buffer.splice(0, link_buffer.length);
 
       Array.prototype.push.apply(
-          filtered_links,
+          link_buffer,
           data.links.filter(function (d) {return d.value >= threshold; })
       );
   
@@ -124,14 +127,6 @@ function draw(svg, data) {
       nodes.exit().remove();
   
       force.start();
-    }
-  
-    update(0);
-    update(6);
-  
-    d3.select('#threshold').on('input', function() {
-      update(+this.value);
-    });
 }
 
 function xSpriteOffset(index) {
