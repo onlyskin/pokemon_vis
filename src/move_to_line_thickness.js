@@ -1,6 +1,6 @@
 const d3 = require('d3');
 const { Line, Coord, coordInRhombus } = require('./coordInRhombusVerifier');
-const { collide } = require('./collide');
+const { makeSimulation } = require('./simulation');
 
 const SPRITE_COLUMNS = 15;
 const IMAGE_SIZE = 150;
@@ -11,36 +11,27 @@ const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${I
 const SVG_WIDTH = 1200;
 const SVG_HEIGHT = 1200;
 
-module.exports.runVisualisation = function() {
-    d3.json('/force_data_151.json', function(error, data) {
-        if (error) throw error;
+module.exports.runVisualisation = async function() {
+    const data = await d3.json('/force_data_151.json');
+    const svg = d3.select('svg');
 
-        const svg = d3.select('svg');
+    svg
+        .attr('width', SVG_WIDTH)
+        .attr('height', SVG_HEIGHT);
 
-        svg
-            .attr('width', SVG_WIDTH)
-            .attr('height', SVG_HEIGHT);
+    svg.append('g').attr('id', 'links');
+    svg.append('g').attr('id', 'nodes');
 
-        svg.append('g').attr('id', 'links');
-        svg.append('g').attr('id', 'nodes');
+    const simulation = makeSimulation(svg.node(), TARGET_IMAGE_SIZE);
+    simulation
+        .on('tick', tick.bind({svg: svg, nodes: data.nodes}))
+        .nodes(data.nodes);
 
-        var force = d3.layout.force()
-            .size([SVG_WIDTH, SVG_HEIGHT])
-            .gravity(0.1)
-            .alpha(0.1)
-            .charge(-200)
-            .chargeDistance(1000)
-            .linkDistance(TARGET_IMAGE_SIZE*0.6*2)
-            .on('tick', tick.bind({svg: svg, nodes: data.nodes}))
-            .nodes(data.nodes)
-            .links([]);
+    update(0, simulation, data, svg);
+    update(6, simulation, data, svg);
 
-        update(0, force, data, svg);
-        update(6, force, data, svg);
-
-        d3.select('#threshold').on('input', function() {
-        update(+this.value, force, data, svg);
-        });
+    d3.select('#threshold').on('input', function() {
+        update(+this.value, simulation, data, svg);
     });
 };
 
@@ -60,35 +51,38 @@ function tick() {
             const x = d.x - (TARGET_IMAGE_SIZE/2);
             const y = d.y - (TARGET_IMAGE_SIZE/2);
             return `translate(${x},${y})`;
-        })
-        .each(collide(0.1, TARGET_IMAGE_SIZE, nodes));
+        });
 }
 
-function update(threshold, force, data, svg) {
-    if (threshold < 3) {
-        force.gravity(0.8).alpha(1);
-    } else {
-        force.gravity(0.1).alpha(0.1);
-    }
-
-    force.links(data.links.filter((d) => d.value >= threshold))
+function update(threshold, simulation, data, svg) {
+    simulation.force('link').links(data.links.filter((d) => d.value >= threshold))
 
     links = svg.select('#links')
         .selectAll('.link')
-        .data(force.links(), link => `${link.source.index}-${link.target.index}`);
-
-    links.enter()
-        .append('line')
-        .attr('class', 'link')
-        .style('stroke-width', d => d.value)
-        .on('mousemove', d => handleMousemove(d))
-        .on('mouseout', d => removeTooltips());
-
-    links.exit().remove();
+        .data(simulation.force('link').links(), link => `${link.source.index}-${link.target.index}`)
+        .join(
+            enter => enter
+                .append('line')
+                .attr('class', 'link')
+                .on('mousemove', d => handleMousemove(d))
+                .on('mouseout', d => removeTooltips())
+            ,
+            update => update,
+            exit => exit.remove()
+        )
+        .style('stroke-width', d => d.value);
 
     nodes = svg.select('#nodes')
         .selectAll('.node')
-        .data(force.nodes());
+        .data(simulation.nodes())
+        .call(d3.drag()
+            .on("drag", function(d) {
+                const selection = d3.select(this);
+                const x = d.x = d3.event.x;
+                const y = d.y = d3.event.y;
+                selection.attr('transform', `translate(${x},${y})`);
+            })
+        );
 
     const groups = nodes.enter()
         .append('g')
@@ -113,13 +107,14 @@ function update(threshold, force, data, svg) {
             const offsetY = -ySpriteOffset(d.number) * IMAGE_SCALE;
             return `translate(${offsetX},${offsetY}) scale(${IMAGE_SCALE})`
         })
-        .call(force.drag)
+        //.call(force.drag)
         .on('mousemove', d => handleMousemove(d))
         .on('mouseout', d => removeTooltips());
 
     nodes.exit().remove();
 
-    force.start();
+    simulation.alpha(0.1);
+    simulation.restart();
 }
 
 function xSpriteOffset(index) {
