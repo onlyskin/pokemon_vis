@@ -1,5 +1,5 @@
 const d3 = require('d3');
-const { Line, Coord, coordInRhombus } = require('./coordInRhombusVerifier');
+const { getIntersectingElements } = require('./coord');
 const { makeSimulation } = require('./simulation');
 
 const SPRITE_COLUMNS = 15;
@@ -11,7 +11,7 @@ const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${I
 const SVG_WIDTH = 1200;
 const SVG_HEIGHT = 1200;
 
-module.exports.runVisualisation = async function() {
+module.exports.draw = async function() {
     const data = await d3.json('/force_data_151.json');
     const svg = d3.select('svg');
 
@@ -126,31 +126,16 @@ function ySpriteOffset(index) {
 }
 
 function handleMousemove(d) {
-    element = getIntersectingElements()[0];
+    const svg = d3.select('svg').node();
+    const coordinates = d3.mouse(svg);
+
+    element = getIntersectingElements(svg, coordinates)[0];
     if (element != undefined) {
         data = element.__data__;
         console.log('source, target:', data.source.name, data.target.name);
         console.log('shared moves:', data.shared_moves);
         makeTooltip(d, data);
     }
-}
-
-function getIntersectingElements() {
-    var svg = d3.select('svg').node();
-    var irect = svg.createSVGRect();
-    var coordinates = d3.mouse(svg);
-    irect.x = coordinates[0];
-    irect.y = coordinates[1];
-    irect.width = irect.height = 1;
-    intersectingElements = [].slice.call(svg.getIntersectionList(irect, null));
-    intersectingLines = intersectingElements.filter((o) => o.nodeName == 'line');
-    actualLines = intersectingLines.filter((o) => {
-        coord = new Coord(irect.x, irect.y);
-        line = new Line(new Coord(o.x1.baseVal.value, o.y1.baseVal.value),
-            new Coord(o.x2.baseVal.value, o.y2.baseVal.value));
-        return coordInRhombus(line, parseInt(o.style.strokeWidth), coord);
-    });
-    return actualLines;
 }
 
 function removeTooltips() {
@@ -184,5 +169,4 @@ function makeTooltip(d, data) {
             .attr('class', 'movename')
             .text(o);
     })
-
 }

@@ -1,3 +1,3 @@
-const runVisualisation = require('./move_to_line_thickness').runVisualisation;
+const { draw } = require('./draw_force');
 
-runVisualisation();
+draw();

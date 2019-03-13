@@ -1,4 +1,21 @@
-module.exports.Coord = function(x, y) {
+module.exports.getIntersectingElements = function(svg, coordinates) {
+    var irect = svg.createSVGRect();
+    irect.x = coordinates[0];
+    irect.y = coordinates[1];
+    irect.width = irect.height = 1;
+    intersectingElements = [].slice.call(svg.getIntersectionList(irect, null));
+    intersectingLines = intersectingElements.filter((o) => o.nodeName == 'line');
+    actualLines = intersectingLines.filter((o) => {
+        coord = new Coord(irect.x, irect.y);
+        line = new Line(new Coord(o.x1.baseVal.value, o.y1.baseVal.value),
+            new Coord(o.x2.baseVal.value, o.y2.baseVal.value));
+        return coordInRhombus(line, parseInt(o.style.strokeWidth), coord);
+    });
+
+    return actualLines;
+}
+
+const Coord = function(x, y) {
 	this.x = x;
 	this.y = y;
 }
@@ -8,7 +25,7 @@ function Equation (coefficient, offset) {
 	this.offset = offset;
 }
 
-module.exports.Line = class {
+class Line {
     constructor(start, end) {
         this.x1 = start.x;
         this.x2 = end.x;
@@ -66,7 +83,7 @@ function getEquation (Coord, coefficient) {
 	return new Equation(coefficient, offset)
 }
 
-module.exports.coordInRhombus = function(Line, perpDistance, Coord) {
+function coordInRhombus(Line, perpDistance, Coord) {
 	paraLines = getParallelLineEquations(Line, perpDistance);
 	perpLines = getPerpendicularLineEquations(Line);
 	if (isBetween(perpLines[0].offset, perpLines[1].offset, getEquation(Coord, perpLines[0].coefficient).offset) &&
