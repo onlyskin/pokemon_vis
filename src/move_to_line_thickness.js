@@ -12,38 +12,38 @@ const SVG_WIDTH = 1200;
 const SVG_HEIGHT = 1200;
 
 module.exports.runVisualisation = function() {
-  d3.json('/force_data_151.json', function(error, data) {
-    if (error) throw error;
+    d3.json('/force_data_151.json', function(error, data) {
+        if (error) throw error;
 
-    const svg = d3.select('svg');
+        const svg = d3.select('svg');
 
-    svg
-      .attr('width', SVG_WIDTH)
-      .attr('height', SVG_HEIGHT);
+        svg
+            .attr('width', SVG_WIDTH)
+            .attr('height', SVG_HEIGHT);
 
-    svg.append('g').attr('id', 'links');
-    svg.append('g').attr('id', 'nodes');
+        svg.append('g').attr('id', 'links');
+        svg.append('g').attr('id', 'nodes');
 
-    const link_buffer = [];
+        const link_buffer = [];
 
-    var force = d3.layout.force()
-      .size([SVG_WIDTH, SVG_HEIGHT])
-      .gravity(0.1)
-      .alpha(0.1)
-      .charge(-200)
-      .chargeDistance(1000)
-      .linkDistance(TARGET_IMAGE_SIZE*0.6*2)
-      .on('tick', tick.bind({svg: svg, nodes: data.nodes}))
-      .nodes(data.nodes)
-      .links(link_buffer);
+        var force = d3.layout.force()
+            .size([SVG_WIDTH, SVG_HEIGHT])
+            .gravity(0.1)
+            .alpha(0.1)
+            .charge(-200)
+            .chargeDistance(1000)
+            .linkDistance(TARGET_IMAGE_SIZE*0.6*2)
+            .on('tick', tick.bind({svg: svg, nodes: data.nodes}))
+            .nodes(data.nodes)
+            .links(link_buffer);
 
-    update(0, force, link_buffer, data, svg);
-    update(6, force, link_buffer, data, svg);
+        update(0, force, link_buffer, data, svg);
+        update(6, force, link_buffer, data, svg);
 
-    d3.select('#threshold').on('input', function() {
-      update(+this.value, force, link_buffer, data, svg);
+        d3.select('#threshold').on('input', function() {
+            update(+this.value, force, link_buffer, data, svg);
+        });
     });
-  });
 };
 
 function tick() {
@@ -67,41 +67,41 @@ function tick() {
 }
 
 function update(threshold, force, link_buffer, data, svg) {
-      if (threshold < 3) {
-          force.gravity(0.8).alpha(1);
-      } else {
-          force.gravity(0.1).alpha(0.1);
-      }
-  
-      link_buffer.splice(0, link_buffer.length);
+    if (threshold < 3) {
+        force.gravity(0.8).alpha(1);
+    } else {
+        force.gravity(0.1).alpha(0.1);
+    }
 
-      Array.prototype.push.apply(
-          link_buffer,
-          data.links.filter(function (d) {return d.value >= threshold; })
-      );
-  
-      links = svg.select('#links')
+    link_buffer.splice(0, link_buffer.length);
+
+    Array.prototype.push.apply(
+        link_buffer,
+        data.links.filter(function (d) {return d.value >= threshold; })
+    );
+
+    links = svg.select('#links')
         .selectAll('.link')
         .data(force.links(), link => `${link.source.index}-${link.target.index}`);
-  
-      links.enter()
+
+    links.enter()
         .append('line')
         .attr('class', 'link')
         .style('stroke-width', d => d.value)
         .on('mousemove', d => handleMousemove(d))
         .on('mouseout', d => removeTooltips());
-  
-      links.exit().remove();
-  
-      nodes = svg.select('#nodes')
+
+    links.exit().remove();
+
+    nodes = svg.select('#nodes')
         .selectAll('.node')
         .data(force.nodes());
-  
-      const groups = nodes.enter()
+
+    const groups = nodes.enter()
         .append('g')
         .attr('class', 'node');
 
-      groups
+    groups
         .append('defs')
         .append('clipPath')
         .attr('id', d => `${d.name}-clip`)
@@ -111,7 +111,7 @@ function update(threshold, force, link_buffer, data, svg) {
         .attr('x', d => xSpriteOffset(d.number))
         .attr('y', d => ySpriteOffset(d.number));
 
-      groups
+    groups
         .append('image')
         .attr('xlink:href', SPRITE_URL)
         .attr('clip-path', d => `url(#${d.name}-clip)`)
@@ -123,10 +123,10 @@ function update(threshold, force, link_buffer, data, svg) {
         .call(force.drag)
         .on('mousemove', d => handleMousemove(d))
         .on('mouseout', d => removeTooltips());
-  
-      nodes.exit().remove();
-  
-      force.start();
+
+    nodes.exit().remove();
+
+    force.start();
 }
 
 function xSpriteOffset(index) {
@@ -138,63 +138,63 @@ function ySpriteOffset(index) {
 }
 
 function handleMousemove(d) {
-  element = getIntersectingElements()[0];
-  if (element != undefined) {
-    data = element.__data__;
-    console.log('source, target:', data.source.name, data.target.name);
-    console.log('shared moves:', data.shared_moves);
-    makeTooltip(d, data);
-  }
+    element = getIntersectingElements()[0];
+    if (element != undefined) {
+        data = element.__data__;
+        console.log('source, target:', data.source.name, data.target.name);
+        console.log('shared moves:', data.shared_moves);
+        makeTooltip(d, data);
+    }
 }
 
 function getIntersectingElements() {
-  var svg = d3.select('svg').node();
-  var irect = svg.createSVGRect();
-  var coordinates = d3.mouse(svg);
-  irect.x = coordinates[0];
-  irect.y = coordinates[1];
-  irect.width = irect.height = 1;
-  intersectingElements = [].slice.call(svg.getIntersectionList(irect, null));
-  intersectingLines = intersectingElements.filter((o) => o.nodeName == 'line');
-  actualLines = intersectingLines.filter((o) => {
-    coord = new Coord(irect.x, irect.y);
-    line = new Line(new Coord(o.x1.baseVal.value, o.y1.baseVal.value),
-                    new Coord(o.x2.baseVal.value, o.y2.baseVal.value));
-    return coordInRhombus(line, parseInt(o.style.strokeWidth), coord);
-  });
-  return actualLines;
+    var svg = d3.select('svg').node();
+    var irect = svg.createSVGRect();
+    var coordinates = d3.mouse(svg);
+    irect.x = coordinates[0];
+    irect.y = coordinates[1];
+    irect.width = irect.height = 1;
+    intersectingElements = [].slice.call(svg.getIntersectionList(irect, null));
+    intersectingLines = intersectingElements.filter((o) => o.nodeName == 'line');
+    actualLines = intersectingLines.filter((o) => {
+        coord = new Coord(irect.x, irect.y);
+        line = new Line(new Coord(o.x1.baseVal.value, o.y1.baseVal.value),
+            new Coord(o.x2.baseVal.value, o.y2.baseVal.value));
+        return coordInRhombus(line, parseInt(o.style.strokeWidth), coord);
+    });
+    return actualLines;
 }
 
 function removeTooltips() {
-  body = d3.select('body');
-  body.selectAll('.tooltip').remove();
+    body = d3.select('body');
+    body.selectAll('.tooltip').remove();
 }
 
 function makeTooltip(d, data) {
-  removeTooltips();
+    removeTooltips();
 
-  if (d.source == undefined) {
-    x = d.x;
-    y = d.y
-  } else {
-    x = (d.source.x + d.target.x) / 2;
-    y = (d.source.y + d.target.y) / 2;
-  }
+    if (d.source == undefined) {
+        x = d.x;
+        y = d.y
+    } else {
+        x = (d.source.x + d.target.x) / 2;
+        y = (d.source.y + d.target.y) / 2;
+    }
 
-  svgContainer = d3.select('#svg_container');
-  tooltip = svgContainer.append('div')
-    .attr('class', 'tooltip')
-    .style('left', x + 70 + 'px')
-    .style('top', y + 70 + 'px');
+    svgContainer = d3.select('#svg_container');
+    tooltip = svgContainer.append('div')
+        .attr('class', 'tooltip')
+        .style('left', x + 70 + 'px')
+        .style('top', y + 70 + 'px');
 
-  tooltip.append('p')
-    .attr('class', 'heading')
-    .text(`${data.source.name}-${data.target.name}`);
-
-  data.shared_moves.map((o) => {
     tooltip.append('p')
-      .attr('class', 'movename')
-      .text(o);
-  })
+        .attr('class', 'heading')
+        .text(`${data.source.name}-${data.target.name}`);
+
+    data.shared_moves.map((o) => {
+        tooltip.append('p')
+            .attr('class', 'movename')
+            .text(o);
+    })
 
 }
