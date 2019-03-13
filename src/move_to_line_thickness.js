@@ -24,8 +24,6 @@ module.exports.runVisualisation = function() {
         svg.append('g').attr('id', 'links');
         svg.append('g').attr('id', 'nodes');
 
-        const link_buffer = [];
-
         var force = d3.layout.force()
             .size([SVG_WIDTH, SVG_HEIGHT])
             .gravity(0.1)
@@ -35,13 +33,13 @@ module.exports.runVisualisation = function() {
             .linkDistance(TARGET_IMAGE_SIZE*0.6*2)
             .on('tick', tick.bind({svg: svg, nodes: data.nodes}))
             .nodes(data.nodes)
-            .links(link_buffer);
+            .links([]);
 
-        update(0, force, link_buffer, data, svg);
-        update(6, force, link_buffer, data, svg);
+        update(0, force, data, svg);
+        update(6, force, data, svg);
 
         d3.select('#threshold').on('input', function() {
-            update(+this.value, force, link_buffer, data, svg);
+        update(+this.value, force, data, svg);
         });
     });
 };
@@ -66,19 +64,14 @@ function tick() {
         .each(collide(0.1, TARGET_IMAGE_SIZE, nodes));
 }
 
-function update(threshold, force, link_buffer, data, svg) {
+function update(threshold, force, data, svg) {
     if (threshold < 3) {
         force.gravity(0.8).alpha(1);
     } else {
         force.gravity(0.1).alpha(0.1);
     }
 
-    link_buffer.splice(0, link_buffer.length);
-
-    Array.prototype.push.apply(
-        link_buffer,
-        data.links.filter(function (d) {return d.value >= threshold; })
-    );
+    force.links(data.links.filter((d) => d.value >= threshold))
 
     links = svg.select('#links')
         .selectAll('.link')
