@@ -1,6 +1,7 @@
 const d3 = require('d3');
 const { getIntersectingElements } = require('./coord');
 const { makeSimulation } = require('./simulation');
+const { loadForceData } = require('./pokedex');
 
 const SPRITE_COLUMNS = 15;
 const IMAGE_SIZE = 150;
@@ -12,7 +13,7 @@ const SVG_WIDTH = 1200;
 const SVG_HEIGHT = 1200;
 
 module.exports.draw = async function() {
-    const data = await d3.json('/force_data_151.json');
+    const data = await loadForceData();
     const svg = d3.select('svg');
 
     svg
@@ -107,7 +108,6 @@ function update(threshold, simulation, data, svg) {
             const offsetY = -ySpriteOffset(d.number) * IMAGE_SCALE;
             return `translate(${offsetX},${offsetY}) scale(${IMAGE_SCALE})`
         })
-        //.call(force.drag)
         .on('mousemove', d => handleMousemove(d))
         .on('mouseout', d => removeTooltips());
 

@@ -4,10 +4,13 @@
   "repository": "https://github.com/onlyskin/pokemon_vis.git",
   "author": "Sam Szreter <s.szreter@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "test": "ospec"
+  },
   "dependencies": {
     "browserify": "^16.2.3",
     "d3": "^5.9.1",
-    "jasmine": "^3.3.1",
+    "ospec": "^3.1.0",
     "pokeapi-js-wrapper": "^1.1.1"
   }
 }
