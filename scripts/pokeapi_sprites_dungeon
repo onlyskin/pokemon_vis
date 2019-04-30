@@ -1,8 +1,0 @@
-#!/bin/bash
-
-mkdir pokeapi_cache_sprites_dungeon
-
-for ((i=$1;i<=$2;i++)); do
-	echo "getting $i"
-    curl "http://www.serebii.net/dungeonsky/pokemon/$i.png" > "sprites/pokeapi_cache_sprites_dungeon/$i.png"
-done
