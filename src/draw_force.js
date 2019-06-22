@@ -1,20 +1,19 @@
 const d3 = require('d3');
 const { getIntersectingElements } = require('./coord');
-const { makeSimulation } = require('./simulation');
 const { loadForceData } = require('./pokedex');
 
 const SPRITE_COLUMNS = 15;
 const IMAGE_SIZE = 150;
 const TARGET_IMAGE_SIZE = 60;
 const IMAGE_SCALE = TARGET_IMAGE_SIZE / IMAGE_SIZE;
-const IMAGE_SET = 'gold';
+const IMAGE_SET = 'yellow';
 const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${IMAGE_SET}.png`;
 const SVG_WIDTH = 1200;
 const SVG_HEIGHT = 1200;
 
-module.exports.draw = async function() {
+module.exports.draw = async function(dom, simulate, threshold) {
     const data = await loadForceData();
-    const svg = d3.select('svg');
+    const svg = d3.select(dom);
 
     svg
         .attr('width', SVG_WIDTH)
@@ -23,17 +22,12 @@ module.exports.draw = async function() {
     svg.append('g').attr('id', 'links');
     svg.append('g').attr('id', 'nodes');
 
-    const simulation = makeSimulation(svg.node(), TARGET_IMAGE_SIZE);
+    const simulation = simulate(svg.node(), TARGET_IMAGE_SIZE);
     simulation
         .on('tick', tick.bind({svg: svg, nodes: data.nodes}))
         .nodes(data.nodes);
 
-    update(0, simulation, data, svg);
-    update(6, simulation, data, svg);
-
-    d3.select('#threshold').on('input', function() {
-        update(+this.value, simulation, data, svg);
-    });
+    update(threshold, simulation, data, svg);
 };
 
 function tick() {

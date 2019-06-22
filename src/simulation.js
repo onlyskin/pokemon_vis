@@ -1,6 +1,6 @@
 const d3 = require('d3');
 
-module.exports.makeSimulation = function(svg, nodeSize) {
+module.exports.simulate = function(svg, nodeSize) {
     const { height, width } = boundingDimensions(svg);
 
     return d3.forceSimulation()

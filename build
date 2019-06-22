@@ -3,11 +3,14 @@
 SRC=src
 OUT=out
 BROWSERIFY=node_modules/browserify/bin/cmd.js
+TACHYONS=node_modules/tachyons/css/tachyons.min.css
 
 rm -rf $OUT
 mkdir -p $OUT
 
-$BROWSERIFY -o $OUT/index.bundle.js src/index.js
+$BROWSERIFY -o $OUT/index.bundle.js $SRC/index.js --debug
 
 cp index.html $OUT/index.html
-cp static/* $OUT/
+cp img_trans.gif $OUT
+cp styling.css $OUT
+cp $TACHYONS $OUT
