@@ -3,26 +3,28 @@ module.exports.getIntersectingElements = function(svg, coordinates) {
     irect.x = coordinates[0];
     irect.y = coordinates[1];
     irect.width = irect.height = 1;
-    intersectingElements = [].slice.call(svg.getIntersectionList(irect, null));
-    intersectingLines = intersectingElements.filter((o) => o.nodeName == 'line');
-    actualLines = intersectingLines.filter((o) => {
-        coord = new Coord(irect.x, irect.y);
-        line = new Line(new Coord(o.x1.baseVal.value, o.y1.baseVal.value),
-            new Coord(o.x2.baseVal.value, o.y2.baseVal.value));
-        return coordInRhombus(line, parseInt(o.style.strokeWidth), coord);
-    });
 
-    return actualLines;
-}
+    const intersectingLines = [].slice.call(svg.getIntersectionList(irect, null))
+        .filter(element => element.nodeName === 'line')
+        .filter(element => {
+            const coord = new Coord(irect.x, irect.y);
+            const line = new Line(
+                new Coord(element.x1.baseVal.value, element.y1.baseVal.value),
+                new Coord(element.x2.baseVal.value, element.y2.baseVal.value));
+            return coordInRhombus(line, parseInt(element.style.strokeWidth), coord);
+        });
+
+    return intersectingLines;
+};
 
 const Coord = function(x, y) {
-	this.x = x;
-	this.y = y;
-}
+    this.x = x;
+    this.y = y;
+};
 
-function Equation (coefficient, offset) {
-	this.coefficient = coefficient;
-	this.offset = offset;
+function Equation(coefficient, offset) {
+    this.coefficient = coefficient;
+    this.offset = offset;
 }
 
 class Line {
@@ -35,62 +37,62 @@ class Line {
 
     getEquation() {
         const coefficient = (this.y2 - this.y1) / (this.x2 - this.x1);
-        const offset = this.y1 - coefficient * this.x1
-        return new Equation(coefficient, offset)
+        const offset = this.y1 - coefficient * this.x1;
+
+        return new Equation(coefficient, offset);
     }
 }
 
-function getCoordLineYDiff (Coord, Line) {
-	e = Line.getEquation();
-	coordY = Coord.y
-	lineYAtCoordX = e.coefficient * Coord.x + e.offset;
-	return coordY - lineYAtCoordX;
-}
+function getPerpendicularLineEquations(line) {
+	const normalCoefficient = -1 / line.getEquation().coefficient;
+	const offset1 = line.y1 - normalCoefficient * line.x1;
+	const offset2 = line.y2 - normalCoefficient * line.x2;
 
-function getPerpendicularLineEquations (Line) {
-	mainLineEquation = Line.getEquation();
-	perpCoefficient = -1 / mainLineEquation.coefficient;
-	offset1 = line.y1 - perpCoefficient * line.x1;
-	offset2 = line.y2 - perpCoefficient * line.x2;
-	e1 = new Equation(perpCoefficient, offset1);
-	e2 = new Equation(perpCoefficient, offset2);
-	return [e1, e2];
+	const equationOne = new Equation(normalCoefficient, offset1);
+	const equationTwo = new Equation(normalCoefficient, offset2);
+	return [equationOne, equationTwo];
 }
 
 // returns a new equation also with a positive offset, you can simpy negate this for the other side
-function getParallelLineEquations (Line, perpDistance) {
-	equation = Line.getEquation()
-	coefficient = equation.coefficient;
-	verticalDistance = perpDistance * Math.sqrt(coefficient * coefficient + 1)
-	e1 = new Equation(coefficient, equation.offset + verticalDistance)
-	e2 = new Equation(coefficient, equation.offset - verticalDistance)
-	return [e1, e2]
+function getParallelLineEquations(line, perpDistance) {
+	const equation = line.getEquation();
+	const coefficient = equation.coefficient;
+    const offset = equation.offset;
+
+	const verticalDistance = perpDistance * Math.sqrt(coefficient * coefficient + 1);
+	const equationOne = new Equation(coefficient, offset + verticalDistance);
+	const equationTwo = new Equation(coefficient, offset - verticalDistance);
+	return [equationOne, equationTwo];
 }
 
-function isBetween (boundary1, boundary2, value) {
+function isBetween(boundary1, boundary2, value) {
 	if (boundary1 < boundary2) {
 		return boundary1 <= value && value <= boundary2;
 	}
 	else if (boundary1 > boundary2) {
 		return boundary1 >= value && value >= boundary2;
 	} else {
-		return boundary1 == value;
+		return boundary1 === value;
 	}
 }
 
-function getEquation (Coord, coefficient) {
-	offset = Coord.y - coefficient * Coord.x;
-	return new Equation(coefficient, offset)
+function getEquation(coord, coefficient) {
+	const offset = coord.y - coefficient * coord.x;
+	return new Equation(coefficient, offset);
 }
 
-function coordInRhombus(Line, perpDistance, Coord) {
-	paraLines = getParallelLineEquations(Line, perpDistance);
-	perpLines = getPerpendicularLineEquations(Line);
-	if (isBetween(perpLines[0].offset, perpLines[1].offset, getEquation(Coord, perpLines[0].coefficient).offset) &&
-		isBetween(paraLines[0].offset, paraLines[1].offset, getEquation(Coord, paraLines[0].coefficient).offset)) {
-		return true;
-	}
-	else {
-		return false;
-	}
+function coordInRhombus(line, perpDistance, coord) {
+	const parallelLineEquations = getParallelLineEquations(line, perpDistance);
+
+	const perpendicularLineEquations = getPerpendicularLineEquations(line);
+
+    return isBetween(
+        perpendicularLineEquations[0].offset,
+        perpendicularLineEquations[1].offset,
+        getEquation(coord, perpendicularLineEquations[0].coefficient).offset
+    ) && isBetween(
+        parallelLineEquations[0].offset,
+        parallelLineEquations[1].offset,
+        getEquation(coord, parallelLineEquations[0].coefficient).offset
+    );
 }

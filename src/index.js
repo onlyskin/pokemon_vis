@@ -3,6 +3,7 @@ const stream = require('mithril/stream');
 
 const { simulate } = require('./simulation');
 const { draw } = require('./draw_force');
+const { loadForceData } = require('./pokedex');
 
 const About = {
     view: () => m(
@@ -38,23 +39,26 @@ const About = {
 };
 
 const Visualisation = {
-    oncreate: ({ dom, attrs: { threshold, simulate } }) => draw(dom, simulate, threshold),
-    onupdate: ({ dom, attrs: { threshold, simulate } }) => draw(dom, simulate, threshold),
-    view: ({ attrs: { threshold, simulate }}) => m('svg'),
+    oncreate: ({ dom, attrs: { data, threshold, simulation } }) => draw(
+        dom, simulation, threshold, data),
+    onupdate: ({ dom, attrs: { data, threshold, simulation } }) => draw(
+        dom, simulation, threshold, data),
+    view: () => m('svg'),
 };
 
 const Page = {
-    view: ({ attrs: { threshold, simulate }}) => m(
+    view: ({ attrs: { data, threshold, simulation }}) => m(
         '.avenir.flex.flex-column.items-center.bg-black.white.ma2',
         m('div#svg_container',
-            m(Visualisation, { threshold, simulate }),
+            m(Visualisation, { data, threshold: threshold(), simulation }),
             m(
                 '',
                 'Link threshold:',
-                m('input[number]', {
-                    oninput: ({ target: { value } }) => threshold(value),
-                    'min': '1',
-                    'max': '20',
+                m('input[type=number]', {
+                    value: threshold(),
+                    oninput: ({ target: { value } }) => threshold(+value),
+                    min: 1,
+                    max: 20,
                 })
             ),
         )
@@ -62,10 +66,18 @@ const Page = {
 };
 
 const threshold = stream(6);
+const data = stream({ nodes: [], links: [] });
+loadForceData()
+    .then(forceData => {
+        data(forceData);
+        m.redraw();
+    });
+
+const simulation = simulate();
 
 m.route(document.body, '/', {
     '/': {
-        render: () => m(Page, { threshold, simulate }),
+        render: () => m(Page, { data: data(), threshold, simulation }),
     },
     '/about': About,
 });

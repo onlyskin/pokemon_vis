@@ -1,0 +1,18 @@
+{
+    "undef": true,
+    "unused": true,
+    "eqeqeq": true,
+    "globals": {
+        "module": true,
+        "require": true,
+        "document": true,
+        "console": true,
+        "env": true,
+        "global": true,
+        "window": true,
+        "clearTimeout": true,
+        "setTimeout": true,
+        "firebaseui": true
+    },
+    "esversion": 8
+}

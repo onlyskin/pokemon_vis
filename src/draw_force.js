@@ -1,6 +1,5 @@
 const d3 = require('d3');
 const { getIntersectingElements } = require('./coord');
-const { loadForceData } = require('./pokedex');
 
 const SPRITE_COLUMNS = 15;
 const IMAGE_SIZE = 150;
@@ -11,63 +10,56 @@ const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${I
 const SVG_WIDTH = 1200;
 const SVG_HEIGHT = 1200;
 
-module.exports.draw = async function(dom, simulate, threshold) {
-    const data = await loadForceData();
-    const svg = d3.select(dom);
+module.exports.draw = async function(svgNode, simulation, threshold, data) {
+    const svg = d3.select(svgNode);
 
-    svg
-        .attr('width', SVG_WIDTH)
-        .attr('height', SVG_HEIGHT);
+    svg.attr('width', SVG_WIDTH);
+    svg.attr('height', SVG_HEIGHT);
 
-    svg.append('g').attr('id', 'links');
-    svg.append('g').attr('id', 'nodes');
+    svg.selectAll('.link-group')
+        .data([0])
+        .enter()
+        .append('g')
+        .attr('class', 'link-group');
 
-    const simulation = simulate(svg.node(), TARGET_IMAGE_SIZE);
+    svg.selectAll('.node-group')
+        .data([0])
+        .enter()
+        .append('g')
+        .attr('class', 'node-group');
+
+    const { height, width } = boundingDimensions(svgNode);
+
     simulation
-        .on('tick', tick.bind({svg: svg, nodes: data.nodes}))
-        .nodes(data.nodes);
+        .force('x', d3.forceX(width * 0.5).strength(0.02))
+        .force('y', d3.forceY(height * 0.5).strength(0.02))
+        .force('center', d3.forceCenter(width * 0.5, height * 0.5));
 
-    update(threshold, simulation, data, svg);
-};
+    simulation.nodes(data.nodes);
 
-function tick() {
-    const { svg, nodes } = this;
+    simulation.force('link')
+        .links(data.links.filter((d) => d.value >= threshold));
 
-    svg.select('#links')
+    simulation.on('tick', tick.bind({ svg }));
+
+    svg.select('.link-group')
         .selectAll('.link')
-        .attr('x1', function(d) { return d.source.x; })
-        .attr('y1', function(d) { return d.source.y; })
-        .attr('x2', function(d) { return d.target.x; })
-        .attr('y2', function(d) { return d.target.y; });
-
-    svg.select('#nodes')
-        .selectAll('.node')
-        .attr('transform', d => {
-            const x = d.x - (TARGET_IMAGE_SIZE/2);
-            const y = d.y - (TARGET_IMAGE_SIZE/2);
-            return `translate(${x},${y})`;
-        });
-}
-
-function update(threshold, simulation, data, svg) {
-    simulation.force('link').links(data.links.filter((d) => d.value >= threshold))
-
-    links = svg.select('#links')
-        .selectAll('.link')
-        .data(simulation.force('link').links(), link => `${link.source.index}-${link.target.index}`)
+        .data(
+            simulation.force('link').links(),
+            link => `${link.source.index}-${link.target.index}`,
+        )
         .join(
             enter => enter
                 .append('line')
                 .attr('class', 'link')
                 .on('mousemove', d => handleMousemove(d))
-                .on('mouseout', d => removeTooltips())
-            ,
+                .on('mouseout', () => removeTooltips()),
             update => update,
             exit => exit.remove()
         )
         .style('stroke-width', d => d.value);
 
-    nodes = svg.select('#nodes')
+    const nodes = svg.select('.node-group')
         .selectAll('.node')
         .data(simulation.nodes())
         .call(d3.drag()
@@ -100,15 +92,40 @@ function update(threshold, simulation, data, svg) {
         .attr('transform', d => {
             const offsetX = -xSpriteOffset(d.number) * IMAGE_SCALE;
             const offsetY = -ySpriteOffset(d.number) * IMAGE_SCALE;
-            return `translate(${offsetX},${offsetY}) scale(${IMAGE_SCALE})`
+            return `translate(${offsetX},${offsetY}) scale(${IMAGE_SCALE})`;
         })
         .on('mousemove', d => handleMousemove(d))
-        .on('mouseout', d => removeTooltips());
+        .on('mouseout', () => removeTooltips());
 
     nodes.exit().remove();
 
     simulation.alpha(0.1);
-    simulation.restart();
+};
+
+function tick() {
+    const { svg } = this;
+
+    svg.select('.link-group')
+        .selectAll('.link')
+        .attr('x1', function(d) { return d.source.x; })
+        .attr('y1', function(d) { return d.source.y; })
+        .attr('x2', function(d) { return d.target.x; })
+        .attr('y2', function(d) { return d.target.y; });
+
+    svg.select('.node-group')
+        .selectAll('.node')
+        .attr('transform', d => {
+            const x = d.x - (TARGET_IMAGE_SIZE/2);
+            const y = d.y - (TARGET_IMAGE_SIZE/2);
+            return `translate(${x},${y})`;
+        });
+}
+
+function boundingDimensions(svgNode) {
+    const boundingRect = svgNode.getBoundingClientRect();
+    const width = boundingRect.width;
+    const height = boundingRect.height;
+    return { width, height };
 }
 
 function xSpriteOffset(index) {
@@ -123,9 +140,9 @@ function handleMousemove(d) {
     const svg = d3.select('svg').node();
     const coordinates = d3.mouse(svg);
 
-    element = getIntersectingElements(svg, coordinates)[0];
-    if (element != undefined) {
-        data = element.__data__;
+    const element = getIntersectingElements(svg, coordinates)[0];
+    if (element !== undefined) {
+        const data = element.__data__;
         console.log('source, target:', data.source.name, data.target.name);
         console.log('shared moves:', data.shared_moves);
         makeTooltip(d, data);
@@ -133,23 +150,25 @@ function handleMousemove(d) {
 }
 
 function removeTooltips() {
-    body = d3.select('body');
+    const body = d3.select('body');
     body.selectAll('.tooltip').remove();
 }
 
 function makeTooltip(d, data) {
     removeTooltips();
 
-    if (d.source == undefined) {
+    let x, y;
+    if (d.source === undefined) {
         x = d.x;
-        y = d.y
+        y = d.y;
     } else {
         x = (d.source.x + d.target.x) / 2;
         y = (d.source.y + d.target.y) / 2;
     }
 
-    svgContainer = d3.select('#svg_container');
-    tooltip = svgContainer.append('div')
+    const svgContainer = d3.select('#svg_container');
+
+    const tooltip = svgContainer.append('div')
         .attr('class', 'tooltip')
         .style('left', x + 70 + 'px')
         .style('top', y + 70 + 'px');
@@ -162,5 +181,5 @@ function makeTooltip(d, data) {
         tooltip.append('p')
             .attr('class', 'movename')
             .text(o);
-    })
+    });
 }

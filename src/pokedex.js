@@ -65,7 +65,7 @@ async function loadForceData() {
 async function loadPokemonData() {
     const pokemonNames = await listPokemon();
     return await Promise.all(pokemonNames.map(async (name) => {
-        return await pokedex.getPokemonByName(name)
+        return await pokedex.getPokemonByName(name);
     }));
 }
 
@@ -76,6 +76,8 @@ async function listPokemon() {
     return firstGen;
 }
 
-module.exports.toForce = toForce;
-module.exports.loadForceData = loadForceData;
-module.exports.loadPokemonData = loadPokemonData;
+module.exports = {
+    toForce,
+    loadForceData,
+    loadPokemonData,
+};
