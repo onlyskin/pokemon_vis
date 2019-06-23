@@ -1,9 +1,8 @@
 const m = require('mithril');
-const stream = require('mithril/stream');
 
 const { simulate } = require('./simulation');
-const { draw } = require('./draw_force');
-const { loadForceData } = require('./pokedex');
+const { draw } = require('./draw');
+const { Model } = require('./model');
 
 const About = {
     view: () => m(
@@ -39,39 +38,64 @@ const About = {
 };
 
 const Visualisation = {
-    oncreate: ({ dom, attrs: { data, threshold, simulation } }) => draw(
-        dom, simulation, threshold, data),
-    onupdate: ({ dom, attrs: { data, threshold, simulation } }) => draw(
-        dom, simulation, threshold, data),
-    view: () => m('svg'),
+    oncreate: ({ dom, attrs: { model, simulation } }) => draw(
+        dom, simulation, model.threshold, model.data, model.spriteUrl),
+    onupdate: ({ dom, attrs: { model, simulation } }) => draw(
+        dom, simulation, model.threshold, model.data, model.spriteUrl),
+    view: () => m('svg.w-100.h-100'),
 };
 
 const Page = {
-    view: ({ attrs: { data, threshold, simulation }}) => m(
-        '.avenir.flex.flex-column.items-center.bg-black.white.pa2.w-100.h-100',
-        m(Visualisation, { data, threshold: threshold(), simulation }),
+    view: ({ attrs: { model, simulation }}) => m(
+        '.avenir.flex.flex-column.white.pa2.w-100.h-100',
+        {
+            class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
+            'bg-near-black' :
+            'bg-near-white',
+        },
         m(
-            '',
+            '.f3',
             'Link threshold:',
-            m('input[type=number]', {
-                value: threshold(),
-                oninput: ({ target: { value } }) => threshold(+value),
+            m('input[type=number].bg-transparent.white.b--transparent.tc', {
+                value: model.threshold,
+                oninput: ({ target: { value } }) => model.threshold = +value,
                 min: 1,
                 max: 20,
             })
         ),
+        m(
+            '.f3',
+            'Generation:',
+            m('input[type=number].bg-transparent.white.b--transparent.tc', {
+                value: model.generation,
+                oninput: ({ target: { value } }) => model.generation = +value,
+                min: 1,
+                max: 2,
+            })
+        ),
+        m(
+            '.f3',
+            'Sprites',
+            m(
+                'select',
+                {
+                    onchange: ({ target: { value } }) => model.imageSet = value,
+                },
+                model.imageSets.map(name => m(
+                    'option',
+                    {
+                        value: name,
+                        selected: model.imageSet === name,
+                    },
+                    name,
+                ))),
+        ),
+        m(Visualisation, { model, simulation }),
     ),
 };
 
-const threshold = stream(6);
-const data = stream({ nodes: [], links: [] });
-loadForceData()
-    .then(forceData => {
-        data(forceData);
-        m.redraw();
-    });
-
 const simulation = simulate();
+const model = new Model();
 
 window.addEventListener('resize', () => {
     m.redraw();
@@ -79,7 +103,7 @@ window.addEventListener('resize', () => {
 
 m.route(document.body, '/', {
     '/': {
-        render: () => m(Page, { data: data(), threshold, simulation }),
+        render: () => m(Page, { model, simulation }),
     },
     '/about': About,
 });

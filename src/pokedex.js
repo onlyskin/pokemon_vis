@@ -57,23 +57,29 @@ function isLevelUpMove(moveData) {
         .some(detail => detail.move_learn_method.name === 'level-up');
 }
 
-async function loadForceData() {
-    const pokemonData = await loadPokemonData();
+async function loadForceData(generation) {
+    const pokemonData = await loadPokemonData(generation);
     return toForce(pokemonData);
 }
 
-async function loadPokemonData() {
-    const pokemonNames = await listPokemon();
+async function loadPokemonData(generation) {
+    const pokemonNames = await listPokemon(generation);
     return await Promise.all(pokemonNames.map(async (name) => {
         return await pokedex.getPokemonByName(name);
     }));
 }
 
-async function listPokemon() {
+function rangeFor(generation) {
+    if (generation === 2) return [ 151, 251 ];
+
+    return [ 0, 151 ];
+}
+
+async function listPokemon(generation) {
     const { results } = await pokedex.getPokemonsList();
     const names = results.map(pokemon => pokemon.name);
-    const firstGen = names.slice(151, 251);
-    return firstGen;
+
+    return names.slice(...rangeFor(generation));
 }
 
 module.exports = {

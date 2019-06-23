@@ -1,7 +1,5 @@
 const d3 = require('d3');
 
-const TARGET_IMAGE_SIZE = 60;
-
 module.exports.simulate = function() {
     return d3.forceSimulation()
         .force('center', d3.forceCenter())
