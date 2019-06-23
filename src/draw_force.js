@@ -2,19 +2,12 @@ const d3 = require('d3');
 const { getIntersectingElements } = require('./coord');
 
 const SPRITE_COLUMNS = 15;
-const IMAGE_SIZE = 150;
-const TARGET_IMAGE_SIZE = 60;
-const IMAGE_SCALE = TARGET_IMAGE_SIZE / IMAGE_SIZE;
-const IMAGE_SET = 'yellow';
+const ACTUAL_SPRITE_SIZE = 150;
+const IMAGE_SET = 'gold';
 const SPRITE_URL = `https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets/${IMAGE_SET}.png`;
-const SVG_WIDTH = 1200;
-const SVG_HEIGHT = 1200;
 
 module.exports.draw = async function(svgNode, simulation, threshold, data) {
     const svg = d3.select(svgNode);
-
-    svg.attr('width', SVG_WIDTH);
-    svg.attr('height', SVG_HEIGHT);
 
     svg.selectAll('.link-group')
         .data([0])
@@ -29,18 +22,37 @@ module.exports.draw = async function(svgNode, simulation, threshold, data) {
         .attr('class', 'node-group');
 
     const { height, width } = boundingDimensions(svgNode);
+    const spriteScale = Math.min(height, width) * 0.1 / ACTUAL_SPRITE_SIZE;
 
+    simulation.force('center').x(width * 0.5);
+    simulation.force('center').y(height * 0.5);
+    simulation.force('x').x(width * 0.5);
+    simulation.force('y').y(height * 0.5);
     simulation
-        .force('x', d3.forceX(width * 0.5).strength(0.02))
-        .force('y', d3.forceY(height * 0.5).strength(0.02))
-        .force('center', d3.forceCenter(width * 0.5, height * 0.5));
+        .force('collision')
+        .radius(() => ACTUAL_SPRITE_SIZE * spriteScale / 2);
+    simulation
+        .force('repulsion')
+        .strength(() => spriteScale * -100)
+        .distanceMax(ACTUAL_SPRITE_SIZE * spriteScale * 4);
+    simulation
+        .force('link')
+        .distance(link => spriteScale * ACTUAL_SPRITE_SIZE + (24 - link.value * 5));
 
     simulation.nodes(data.nodes);
 
     simulation.force('link')
         .links(data.links.filter((d) => d.value >= threshold));
 
-    simulation.on('tick', tick.bind({ svg }));
+    const offset = ACTUAL_SPRITE_SIZE * spriteScale / 2
+    const boundaries = {
+        left: 0 + offset,
+        right: width - offset,
+        top: 0 + offset,
+        bottom: height - offset,
+    };
+
+    simulation.on('tick', tick.bind({ svg, spriteScale, boundaries }));
 
     svg.select('.link-group')
         .selectAll('.link')
@@ -57,11 +69,15 @@ module.exports.draw = async function(svgNode, simulation, threshold, data) {
             update => update,
             exit => exit.remove()
         )
-        .style('stroke-width', d => d.value);
+        .style('stroke-width', d => d.value * spriteScale);
 
     const nodes = svg.select('.node-group')
         .selectAll('.node')
-        .data(simulation.nodes())
+        .data(simulation.nodes());
+
+    const groups = nodes.enter()
+        .append('g')
+        .attr('class', 'node')
         .call(d3.drag()
             .on("drag", function(d) {
                 const selection = d3.select(this);
@@ -71,31 +87,39 @@ module.exports.draw = async function(svgNode, simulation, threshold, data) {
             })
         );
 
-    const groups = nodes.enter()
-        .append('g')
-        .attr('class', 'node');
-
     groups
         .append('defs')
         .append('clipPath')
         .attr('id', d => `${d.name}-clip`)
         .append('rect')
-        .attr('height', IMAGE_SIZE)
-        .attr('width', IMAGE_SIZE)
+        .attr('height', ACTUAL_SPRITE_SIZE)
+        .attr('width', ACTUAL_SPRITE_SIZE)
         .attr('x', d => xSpriteOffset(d.number))
         .attr('y', d => ySpriteOffset(d.number));
+
+    svg.selectAll('clipPath')
+        .attr('height', ACTUAL_SPRITE_SIZE)
+        .attr('width', ACTUAL_SPRITE_SIZE);
 
     groups
         .append('image')
         .attr('xlink:href', SPRITE_URL)
         .attr('clip-path', d => `url(#${d.name}-clip)`)
         .attr('transform', d => {
-            const offsetX = -xSpriteOffset(d.number) * IMAGE_SCALE;
-            const offsetY = -ySpriteOffset(d.number) * IMAGE_SCALE;
-            return `translate(${offsetX},${offsetY}) scale(${IMAGE_SCALE})`;
+            const offsetX = -xSpriteOffset(d.number) * spriteScale;
+            const offsetY = -ySpriteOffset(d.number) * spriteScale;
+            return `translate(${offsetX},${offsetY}) scale(${spriteScale})`;
         })
         .on('mousemove', d => handleMousemove(d))
         .on('mouseout', () => removeTooltips());
+
+    svg.selectAll('.node')
+        .selectAll('image')
+        .attr('transform', d => {
+            const offsetX = -xSpriteOffset(d.number) * spriteScale;
+            const offsetY = -ySpriteOffset(d.number) * spriteScale;
+            return `translate(${offsetX},${offsetY}) scale(${spriteScale})`;
+        });
 
     nodes.exit().remove();
 
@@ -103,7 +127,22 @@ module.exports.draw = async function(svgNode, simulation, threshold, data) {
 };
 
 function tick() {
-    const { svg } = this;
+    const { svg, spriteScale, boundaries } = this;
+
+    const { height, width } = boundingDimensions(svg.node());
+    const { left, right, top, bottom } = boundaries;
+    const offset = ACTUAL_SPRITE_SIZE * spriteScale / 2
+
+    svg.select('.node-group')
+        .selectAll('.node')
+        .attr('transform', d => {
+            const x = Math.max(left, Math.min(right, d.x));
+            const y = Math.max(top, Math.min(bottom, d.y));
+
+            d.x = x;
+            d.y = y;
+            return `translate(${x - offset},${y - offset})`;
+        });
 
     svg.select('.link-group')
         .selectAll('.link')
@@ -111,14 +150,6 @@ function tick() {
         .attr('y1', function(d) { return d.source.y; })
         .attr('x2', function(d) { return d.target.x; })
         .attr('y2', function(d) { return d.target.y; });
-
-    svg.select('.node-group')
-        .selectAll('.node')
-        .attr('transform', d => {
-            const x = d.x - (TARGET_IMAGE_SIZE/2);
-            const y = d.y - (TARGET_IMAGE_SIZE/2);
-            return `translate(${x},${y})`;
-        });
 }
 
 function boundingDimensions(svgNode) {
@@ -129,11 +160,11 @@ function boundingDimensions(svgNode) {
 }
 
 function xSpriteOffset(index) {
-    return ((index - 1) % SPRITE_COLUMNS) * IMAGE_SIZE;
+    return ((index - 1) % SPRITE_COLUMNS) * ACTUAL_SPRITE_SIZE;
 }
 
 function ySpriteOffset(index) {
-    return (Math.floor((index - 1) / SPRITE_COLUMNS)) * IMAGE_SIZE;
+    return (Math.floor((index - 1) / SPRITE_COLUMNS)) * ACTUAL_SPRITE_SIZE;
 }
 
 function handleMousemove(d) {
@@ -166,7 +197,7 @@ function makeTooltip(d, data) {
         y = (d.source.y + d.target.y) / 2;
     }
 
-    const svgContainer = d3.select('#svg_container');
+    const svgContainer = d3.select('body');
 
     const tooltip = svgContainer.append('div')
         .attr('class', 'tooltip')

@@ -48,20 +48,18 @@ const Visualisation = {
 
 const Page = {
     view: ({ attrs: { data, threshold, simulation }}) => m(
-        '.avenir.flex.flex-column.items-center.bg-black.white.ma2',
-        m('div#svg_container',
-            m(Visualisation, { data, threshold: threshold(), simulation }),
-            m(
-                '',
-                'Link threshold:',
-                m('input[type=number]', {
-                    value: threshold(),
-                    oninput: ({ target: { value } }) => threshold(+value),
-                    min: 1,
-                    max: 20,
-                })
-            ),
-        )
+        '.avenir.flex.flex-column.items-center.bg-black.white.pa2.w-100.h-100',
+        m(Visualisation, { data, threshold: threshold(), simulation }),
+        m(
+            '',
+            'Link threshold:',
+            m('input[type=number]', {
+                value: threshold(),
+                oninput: ({ target: { value } }) => threshold(+value),
+                min: 1,
+                max: 20,
+            })
+        ),
     ),
 };
 
@@ -74,6 +72,10 @@ loadForceData()
     });
 
 const simulation = simulate();
+
+window.addEventListener('resize', () => {
+    m.redraw();
+});
 
 m.route(document.body, '/', {
     '/': {

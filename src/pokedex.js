@@ -72,7 +72,7 @@ async function loadPokemonData() {
 async function listPokemon() {
     const { results } = await pokedex.getPokemonsList();
     const names = results.map(pokemon => pokemon.name);
-    const firstGen = names.slice(0, 151);
+    const firstGen = names.slice(151, 251);
     return firstGen;
 }
 

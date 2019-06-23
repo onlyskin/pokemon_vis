@@ -1,25 +1,26 @@
-#svg_container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 20px; }
-  #svg_container .link {
-    stroke: #999;
-    stroke-opacity: 0.5; }
+svg {
+  width: 100%;
+  height: 100%;
+  border: 2px solid white;
+}
+
+svg .link {
+  stroke: #999;
+  stroke-opacity: 0.5;
+}
 
 form {
   display: flex;
   align-self: flex-start;
   margin-left: 100px;
   margin-top: 50px;
-  position: absolute; }
-  form input {
-    font-size: 50px;
-    text-align: center;
-    background-color: transparent;
-    color: white;
-    border: none; }
+  position: absolute;
+}
 
-svg {
-  border: 2px solid white; }
+form input {
+  font-size: 50px;
+  text-align: center;
+  background-color: transparent;
+  color: white;
+  border: none;
+}
