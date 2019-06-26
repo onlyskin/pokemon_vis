@@ -19,14 +19,13 @@ class Simulation {
         return this._simulation.nodes();
     }
 
-    updateData(threshold, generation) {
-        const pokemons = this._dataProvider.dataFor(generation);
-        const forceData = this._forceData.forceFrom(pokemons, this.nodes);
+    updateData(model) {
+        const pokemons = this._dataProvider.dataFor();
+        const forceData = this._forceData.forceFrom(
+            pokemons, this.nodes, model.threshold);
 
         this._simulation.nodes(forceData.nodes);
-        this._simulation.force('link')
-            .links(forceData.links.filter(link =>
-                link.shared_moves.length >= threshold));
+        this._simulation.force('link').links(forceData.links);
     }
 
     get links() {

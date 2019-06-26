@@ -1,5 +1,5 @@
 class ForceData {
-    forceFrom(pokemons, existingNodes) {
+    forceFrom(pokemons, existingNodes, threshold) {
         const existingPhysics = {};
         existingNodes.forEach(node => {
             existingPhysics[node.name] = node;
@@ -11,7 +11,8 @@ class ForceData {
 
         return {
             nodes: nodes,
-            links: this._linksFrom(nodes),
+            links: this._linksFrom(nodes).filter(link =>
+                link.shared_moves.length >= threshold),
         };
     }
 

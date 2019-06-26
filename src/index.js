@@ -4,8 +4,12 @@ const { Pokedex } = require('pokeapi-js-wrapper');
 const { Simulation } = require('./simulation');
 const { draw } = require('./draw');
 const { Model } = require('./model');
+const { TYPES } = require('./constant');
+const { Generation } = require('./generation');
+const { Image } = require('./image');
 const { Data } = require('./data');
-const { ForceData } = require('./force_Data');
+const { ForceData } = require('./force_data');
+const { Search } = require('./search');
 
 const About = {
     view: () => m(
@@ -42,14 +46,14 @@ const About = {
 
 const Visualisation = {
     oncreate: ({ dom, attrs: { model, simulation } }) => draw(
-        dom, simulation, model.spriteUrl, model.threshold, model.generation),
+        dom, simulation, model ),
     onupdate: ({ dom, attrs: { model, simulation } }) => draw(
-        dom, simulation, model.spriteUrl, model.threshold, model.generation),
+        dom, simulation, model ),
     view: () => m('svg.w-100.h-100'),
 };
 
 const Page = {
-    view: ({ attrs: { model, simulation }}) => m(
+    view: ({ attrs: { model, simulation, generation }}) => m(
         '.avenir.flex.flex-column.white.pa2.w-100.h-100',
         {
             class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
@@ -67,14 +71,17 @@ const Page = {
             })
         ),
         m(
-            '.f3',
-            'Generation:',
-            m('input[type=number].bg-transparent.white.b--transparent.tc', {
-                value: model.generation,
-                oninput: ({ target: { value } }) => model.generation = +value,
-                min: 1,
-                max: 2,
-            })
+            '.f5.flex.flex-wrap',
+            generation.generations.map(gen => m(
+                '.black.br-pill.ba.b--purple.pa2.ma1',
+                {
+                    class: model.isActiveGeneration(gen) ?
+                    'bg-white' :
+                    'bg-gray',
+                    onclick: () => model.toggleGeneration(gen),
+                },
+                `${generation.toString(gen)}`,
+            )),
         ),
         m(
             '.f3',
@@ -82,25 +89,41 @@ const Page = {
             m(
                 'select',
                 {
-                    onchange: ({ target: { value } }) => model.imageSet = value,
+                    onchange: ({ target: { value } }) =>
+                    model.imageSet = value,
                 },
-                model.imageSets.map(name => m(
+                image.imageSets.map(imageSet => m(
                     'option',
                     {
-                        value: name,
-                        selected: model.imageSet === name,
+                        value: imageSet,
+                        selected: model.imageSet === imageSet,
                     },
-                    name,
+                    image.toString(imageSet),
                 ))),
         ),
-        m(Visualisation, { model, simulation }),
-    ),
+        m(
+            '.f5.flex.flex-wrap',
+            TYPES.map(type => m(
+                '.black.br-pill.ba.b--purple.pa2.ma1',
+                {
+                    class: model.isActiveType(type) ? 'bg-white' : 'bg-gray',
+                    onclick: () => model.toggleType(type),
+                },
+                type
+            )),
+        ),
+    m(Visualisation, { model, simulation }),
+),
 };
 
-const data_provider = new Data(new Pokedex({ protocol: 'https' }), m.redraw);
+const generation = new Generation();
+const image = new Image();
+const search = new Search(generation);
+const model = new Model(m.redraw, generation, image);
 const forceData = new ForceData();
+const pokedex = new Pokedex({ protocol: 'https' });
+const data_provider = new Data(pokedex, m.redraw, model, search);
 const simulation = new Simulation(data_provider, forceData);
-const model = new Model(m.redraw);
 
 window.addEventListener('resize', () => {
     m.redraw();
@@ -108,7 +131,7 @@ window.addEventListener('resize', () => {
 
 m.route(document.body, '/', {
     '/': {
-        render: () => m(Page, { model, simulation }),
+        render: () => m(Page, { model, simulation, generation }),
     },
     '/about': About,
 });

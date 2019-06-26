@@ -74,7 +74,7 @@ o.spec('addPokemon', () => {
             ],
             'links': []
         };
-        o(forceData.forceFrom(pokemons, nodes)).deepEquals(expected);
+        o(forceData.forceFrom(pokemons, nodes, 0)).deepEquals(expected);
     });
 
     o('adds next pokemon', () => {
@@ -138,6 +138,6 @@ o.spec('addPokemon', () => {
                 }
             ]
         };
-        o(forceData.forceFrom(pokemons, nodes)).deepEquals(expected);
+        o(forceData.forceFrom(pokemons, nodes, 0)).deepEquals(expected);
     })
 });

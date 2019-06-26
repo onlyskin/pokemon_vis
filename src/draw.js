@@ -10,7 +10,7 @@ function spriteSizeFrom(svgNode) {
     return Math.min(height, width) * 0.1;
 }
 
-function draw(svgNode, simulation, spriteUrl, threshold, generation) {
+function draw(svgNode, simulation, model) {
     const svg = d3.select(svgNode);
 
     svg.selectAll('.link-group')
@@ -30,7 +30,7 @@ function draw(svgNode, simulation, spriteUrl, threshold, generation) {
     const spriteScale = spriteSize / ACTUAL_SPRITE_SIZE;
 
     simulation.updateDimensions(height, width, spriteSize);
-    simulation.updateData(threshold, generation);
+    simulation.updateData(model);
 
     simulation.ontick = tick.bind({ svg });
 
@@ -94,7 +94,7 @@ function draw(svgNode, simulation, spriteUrl, threshold, generation) {
     const mergedImages = enteringImages.merge(updatingNodes.select('image'));
 
     mergedImages
-        .attr('xlink:href', spriteUrl)
+        .attr('xlink:href', model.spriteUrl)
         .attr('transform', d => {
             const offsetX = -xSpriteOffset(d.number) * spriteScale;
             const offsetY = -ySpriteOffset(d.number) * spriteScale;

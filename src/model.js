@@ -1,27 +1,15 @@
 const stream = require('mithril/stream');
-
-const SPRITE_URL = 'https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets';
-
-const imageSets = {
-    'Red/Blue': `${SPRITE_URL}/rb.png`,
-    'Yellow': `${SPRITE_URL}/yellow.png`,
-    'Gold': `${SPRITE_URL}/gold.png`,
-};
+const { TYPES } = require('./constant');
 
 class Model {
-    constructor(redraw) {
+    constructor(redraw, generation, image) {
         this._redraw = redraw;
-        this._generation = stream(1);
         this._threshold = stream(6);
-        this._imageSet = stream(Object.keys(imageSets)[0]);
-    }
+        this._image = image;
 
-    get generation() {
-        return this._generation();
-    }
-
-    set generation(generation) {
-        this._generation(generation);
+        this._types = stream(new Set(TYPES));
+        this._generations = stream(new Set([generation.generations[0]]));
+        this._imageSet = stream(image.imageSets[0]);
     }
 
     get threshold() {
@@ -32,24 +20,51 @@ class Model {
         this._threshold(threshold);
     }
 
-    get imageSets() {
-        return Object.keys(imageSets);
+    get types() {
+        return this._types();
+    }
+
+    isActiveType(type) {
+        return this._types().has(type);
+    }
+
+    toggleType(type) {
+        if (this._types().has(type)) {
+            this._types().delete(type);
+        } else {
+            this._types().add(type);
+        }
+    }
+
+    get generations() {
+        return this._generations();
+    }
+
+    isActiveGeneration(generation) {
+        return this._generations().has(generation);
+    }
+
+    toggleGeneration(generation) {
+        if (this._generations().has(generation)) {
+            this._generations().delete(generation);
+        } else {
+            this._generations().add(generation);
+        }
     }
 
     get spriteUrl() {
-        return imageSets[this._imageSet()];
+        return this._image.getUrl(this.imageSet);
     }
 
     get imageSet() {
         return this._imageSet();
     }
 
-    set imageSet(name) {
-        this._imageSet(name);
-        this._redraw();
+    set imageSet(imageSet) {
+        this._imageSet(imageSet);
     }
 }
 
 module.exports = {
-    Model
+    Model,
 };
