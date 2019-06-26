@@ -1,10 +1,16 @@
 const d3 = require('d3');
+
 const { getIntersectingElements } = require('./coord');
 
 const SPRITE_COLUMNS = 15;
 const ACTUAL_SPRITE_SIZE = 150;
 
-function draw(svgNode, simulation, threshold, data, spriteUrl) {
+function spriteSizeFrom(svgNode) {
+    const { height, width } = boundingDimensions(svgNode);
+    return Math.min(height, width) * 0.1;
+}
+
+function draw(svgNode, simulation, spriteUrl, threshold, generation) {
     const svg = d3.select(svgNode);
 
     svg.selectAll('.link-group')
@@ -20,44 +26,17 @@ function draw(svgNode, simulation, threshold, data, spriteUrl) {
         .attr('class', 'node-group');
 
     const { height, width } = boundingDimensions(svgNode);
-    const spriteScale = Math.min(height, width) * 0.1 / ACTUAL_SPRITE_SIZE;
+    const spriteSize = spriteSizeFrom(svgNode);
+    const spriteScale = spriteSize / ACTUAL_SPRITE_SIZE;
 
-    simulation.force('center').x(width * 0.5);
-    simulation.force('center').y(height * 0.5);
-    simulation.force('x').x(width * 0.5);
-    simulation.force('y').y(height * 0.5);
-    simulation
-        .force('collision')
-        .radius(() => ACTUAL_SPRITE_SIZE * spriteScale / 2);
-    simulation
-        .force('repulsion')
-        .strength(() => spriteScale * -100)
-        .distanceMax(ACTUAL_SPRITE_SIZE * spriteScale * 4);
-    simulation
-        .force('link')
-        .distance(link => spriteScale * ACTUAL_SPRITE_SIZE + (24 - link.value * 5));
+    simulation.updateDimensions(height, width, spriteSize);
+    simulation.updateData(threshold, generation);
 
-    simulation.nodes(data.nodes);
-
-    simulation.force('link')
-        .links(data.links.filter((d) => d.value >= threshold));
-
-    const offset = ACTUAL_SPRITE_SIZE * spriteScale / 2;
-    const boundaries = {
-        left: 0 + offset,
-        right: width - offset,
-        top: 0 + offset,
-        bottom: height - offset,
-    };
-
-    simulation.on('tick', tick.bind({ svg, spriteScale, boundaries }));
+    simulation.ontick = tick.bind({ svg });
 
     svg.select('.link-group')
         .selectAll('.link')
-        .data(
-            simulation.force('link').links(),
-            link => `${link.source.number}-${link.target.number}`,
-        )
+        .data(simulation.links, simulation.linkKey)
         .join(
             enter => enter
                 .append('line')
@@ -65,13 +44,13 @@ function draw(svgNode, simulation, threshold, data, spriteUrl) {
                 .on('mousemove', d => handleMousemove(d))
                 .on('mouseout', () => removeTooltips()),
             update => update,
-            exit => exit.remove()
+            exit => exit.remove(),
         )
-        .style('stroke-width', d => d.value * spriteScale);
+        .style('stroke-width', link => link.shared_moves.length * spriteScale);
 
     const updatingNodes = svg.select('.node-group')
         .selectAll('.node')
-        .data(simulation.nodes(), d => d.number);
+        .data(simulation.nodes, simulation.nodeKey);
 
     const enteringNodes = updatingNodes.enter()
         .append('g')
@@ -124,14 +103,18 @@ function draw(svgNode, simulation, threshold, data, spriteUrl) {
 
     updatingNodes.exit().remove();
 
-    simulation.alpha(0.1);
+    simulation.restart();
 }
 
 function tick() {
-    const { svg, spriteScale, boundaries } = this;
+    const { svg } = this;
 
-    const { left, right, top, bottom } = boundaries;
-    const offset = ACTUAL_SPRITE_SIZE * spriteScale / 2;
+    const offset = spriteSizeFrom(svg.node()) / 2;
+    const { height, width } = boundingDimensions(svg.node());
+    const left = 0 + offset;
+    const right = width - offset;
+    const top = 0 + offset;
+    const bottom = height - offset;
 
     svg.select('.node-group')
         .selectAll('.node')
