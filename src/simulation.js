@@ -5,12 +5,11 @@ class Simulation {
         this._dataProvider = dataProvider;
         this._forceData = forceData;
         this._simulation = d3.forceSimulation()
-            .force('center', d3.forceCenter())
-            .force('x', d3.forceX().strength(() => 0.005))
-            .force('y', d3.forceY().strength(() => 0.005))
+            .force('x', d3.forceX().strength(() => 0.005).x(0))
+            .force('y', d3.forceY().strength(() => 0.005).y(0))
             .force('collision', d3.forceCollide())
             .force('repulsion', d3.forceManyBody())
-            .force('link', d3.forceLink().strength(1.0).id(node => node.name))
+            .force('link', d3.forceLink().strength(0.5).id(node => node.name))
             .alpha(0.1)
             .alphaDecay(0);
     }
@@ -44,21 +43,17 @@ class Simulation {
         this._simulation.alpha(0.1);
     }
 
-    updateDimensions(height, width, spriteSize) {
-        this._simulation.force('center').x(width * 0.5);
-        this._simulation.force('center').y(height * 0.5);
-        this._simulation.force('x').x(width * 0.5);
-        this._simulation.force('y').y(height * 0.5);
+    updateDimensions(spriteSize) {
         this._simulation
             .force('collision')
-            .radius(() => spriteSize / 2);
+            .radius(() => spriteSize * 0.6);
         this._simulation
             .force('repulsion')
-            .strength(() => spriteSize * -1.5)
+            .strength(() => -200)
             .distanceMax(spriteSize * 4);
         this._simulation
             .force('link')
-            .distance(link => spriteSize + 24 - link.shared_moves.length * 5);
+            .distance(link => spriteSize * 2 * (1 / link.shared_moves.length));
     }
 
     get ontick() {

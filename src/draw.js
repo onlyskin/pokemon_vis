@@ -7,11 +7,14 @@ const ACTUAL_SPRITE_SIZE = 150;
 
 function spriteSizeFrom(svgNode) {
     const { height, width } = boundingDimensions(svgNode);
-    return Math.min(height, width) * 0.1;
+    return Math.min(height, width) * 0.07;
 }
 
 function draw(svgNode, simulation, model) {
     const svg = d3.select(svgNode);
+    const { height, width } = boundingDimensions(svgNode);
+    const spriteSize = spriteSizeFrom(svgNode);
+    const spriteScale = spriteSize / ACTUAL_SPRITE_SIZE;
 
     svg.selectAll('.link-group')
         .data([0])
@@ -25,11 +28,7 @@ function draw(svgNode, simulation, model) {
         .append('g')
         .attr('class', 'node-group');
 
-    const { height, width } = boundingDimensions(svgNode);
-    const spriteSize = spriteSizeFrom(svgNode);
-    const spriteScale = spriteSize / ACTUAL_SPRITE_SIZE;
-
-    simulation.updateDimensions(height, width, spriteSize);
+    simulation.updateDimensions(spriteSize);
     simulation.updateData(model);
 
     simulation.ontick = tick.bind({ svg });
@@ -61,7 +60,7 @@ function draw(svgNode, simulation, model) {
             const selection = d3.select(this);
             const x = d.x = d3.event.x;
             const y = d.y = d3.event.y;
-            selection.attr('transform', `translate(${x},${y})`);
+            selection.attr('transform', `translate(${x + 0.5 * width},${y + 0.5 * height})`);
         })
     );
 
@@ -111,10 +110,10 @@ function tick() {
 
     const offset = spriteSizeFrom(svg.node()) / 2;
     const { height, width } = boundingDimensions(svg.node());
-    const left = 0 + offset;
-    const right = width - offset;
-    const top = 0 + offset;
-    const bottom = height - offset;
+    const left = -0.5 * width + offset;
+    const right = 0.5 * width - offset;
+    const top = -0.5 * height + offset;
+    const bottom = 0.5 * height - offset;
 
     svg.select('.node-group')
         .selectAll('.node')
@@ -124,15 +123,15 @@ function tick() {
 
             d.x = x;
             d.y = y;
-            return `translate(${x - offset},${y - offset})`;
+            return `translate(${x - offset + 0.5 * width},${y - offset + 0.5 * height})`;
         });
 
     svg.select('.link-group')
         .selectAll('.link')
-        .attr('x1', function(d) { return d.source.x; })
-        .attr('y1', function(d) { return d.source.y; })
-        .attr('x2', function(d) { return d.target.x; })
-        .attr('y2', function(d) { return d.target.y; });
+        .attr('x1', function(d) { return d.source.x + 0.5 * width; })
+        .attr('y1', function(d) { return d.source.y + 0.5 * height; })
+        .attr('x2', function(d) { return d.target.x + 0.5 * width; })
+        .attr('y2', function(d) { return d.target.y + 0.5 * height; });
 }
 
 function boundingDimensions(svgNode) {
