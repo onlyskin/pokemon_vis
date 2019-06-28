@@ -54,66 +54,69 @@ const Visualisation = {
 
 const Page = {
     view: ({ attrs: { model, simulation, generation }}) => m(
-        '.avenir.flex.flex-column.white.pa2.w-100.h-100',
+        '.avenir.flex.flex-column.pa2.w-100.h-100',
         {
             class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
-            'bg-near-black' :
-            'bg-near-white',
+            'bg-near-black near-white' :
+            'bg-near-white near-black',
         },
         m(
-            '.f3',
-            'Link threshold:',
-            m('input[type=number].bg-transparent.white.b--transparent.tc', {
-                value: model.threshold,
-                oninput: ({ target: { value } }) => model.threshold = +value,
-                min: 1,
-                max: 20,
-            })
-        ),
-        m(
-            '.f5.flex.flex-wrap',
-            generation.generations.map(gen => m(
-                '.black.br-pill.ba.b--purple.pa2.ma1',
-                {
-                    class: model.isActiveGeneration(gen) ?
-                    'bg-white' :
-                    'bg-gray',
-                    onclick: () => model.toggleGeneration(gen),
-                },
-                `${generation.toString(gen)}`,
-            )),
-        ),
-        m(
-            '.f3',
-            'Sprites',
+            '.flex.flex-wrap.justify-between',
             m(
-                'select',
-                {
-                    onchange: ({ target: { value } }) =>
-                    model.imageSet = value,
-                },
-                image.imageSets.map(imageSet => m(
-                    'option',
+                '.f3',
+                'Link threshold:',
+                m('input[type=number].bg-transparent.b--transparent.tc.f4', {
+                    value: model.threshold,
+                    oninput: ({ target: { value } }) => model.threshold = +value,
+                    min: 1,
+                    max: 20,
+                })
+            ),
+            m(
+                '.f5.flex.flex-wrap',
+                generation.generations.map(gen => m(
+                    '.black.br-pill.ba.b--purple.pa2.ma1',
                     {
-                        value: imageSet,
-                        selected: model.imageSet === imageSet,
+                        class: model.isActiveGeneration(gen) ?
+                        'bg-white' :
+                        'bg-gray',
+                        onclick: () => model.toggleGeneration(gen),
                     },
-                    image.toString(imageSet),
-                ))),
+                    `${generation.toString(gen)}`,
+                )),
+            ),
+            m(
+                '.f3',
+                'Sprites',
+                m(
+                    'select.bg-transparent.b--transparent.f4',
+                    {
+                        onchange: ({ target: { value } }) =>
+                        model.imageSet = value,
+                    },
+                    image.validImageSets(model.generations).map(imageSet => m(
+                        'option',
+                        {
+                            value: imageSet,
+                            selected: model.imageSet === imageSet,
+                        },
+                        image.toString(imageSet),
+                    ))),
+            ),
+            m(
+                '.f5.flex.flex-wrap',
+                TYPES.map(type => m(
+                    '.black.br-pill.ba.b--purple.pa2.ma1',
+                    {
+                        class: model.isActiveType(type) ? 'bg-white' : 'bg-gray',
+                        onclick: () => model.toggleType(type),
+                    },
+                    type
+                )),
+            ),
         ),
-        m(
-            '.f5.flex.flex-wrap',
-            TYPES.map(type => m(
-                '.black.br-pill.ba.b--purple.pa2.ma1',
-                {
-                    class: model.isActiveType(type) ? 'bg-white' : 'bg-gray',
-                    onclick: () => model.toggleType(type),
-                },
-                type
-            )),
-        ),
-    m(Visualisation, { model, simulation }),
-),
+        m(Visualisation, { model, simulation }),
+    ),
 };
 
 const generation = new Generation();

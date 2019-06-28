@@ -29,6 +29,10 @@ class Image {
         return [ RED_BLUE, YELLOW, GOLD];
     }
 
+    validImageSets(generations) {
+        return this.imageSets;
+    }
+
     toString(image_set) {
         return this._image_sets[image_set].string;
     }
