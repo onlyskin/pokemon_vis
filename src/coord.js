@@ -6,7 +6,7 @@ module.exports.getIntersectingElements = function(svg, coordinates) {
 
     const intersectingLines = [].slice.call(
         svg.getIntersectionList(irect, null))
-        .filter(element => element.nodeName === 'line')
+        .filter(element => element.nodeName === 'path')
         .filter(element => {
             const coord = new Coord(irect.x, irect.y);
             const line = new Line(

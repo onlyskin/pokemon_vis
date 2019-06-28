@@ -51,7 +51,7 @@ class Draw {
             .data(this._simulation.links, this._simulation.linkKey)
             .join(
                 enter => enter
-                .append('line')
+                .append('path')
                 .attr('class', 'link'),
                 //.on('mousemove', d => this._handleMousemove(d))
                 //.on('mouseout', () => this._removeTooltips()),
@@ -166,10 +166,13 @@ class Draw {
 
         svg.select('.link-group')
             .selectAll('.link')
-            .attr('x1', function(d) { return d.source.x + 0.5 * width; })
-            .attr('y1', function(d) { return d.source.y + 0.5 * height; })
-            .attr('x2', function(d) { return d.target.x + 0.5 * width; })
-            .attr('y2', function(d) { return d.target.y + 0.5 * height; });
+            .attr('d', d => {
+                const x1 = d.source.x + 0.5 * width;
+                const y1 = d.source.y + 0.5 * height;
+                const x2 = d.target.x + 0.5 * width;
+                const y2 = d.target.y + 0.5 * height;
+                return `M ${x1} ${y1} C ${x1+10} ${y1+10}, ${x1-10} ${y1+10}, ${x2} ${y2}`
+            });
     }
 
     _spriteSizeFrom(svgNode, nodeCount) {
