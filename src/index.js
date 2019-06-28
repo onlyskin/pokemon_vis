@@ -45,15 +45,15 @@ const About = {
 };
 
 const Visualisation = {
-    oncreate: ({ dom, attrs: { model, simulation } }) => draw(
-        dom, simulation, model ),
-    onupdate: ({ dom, attrs: { model, simulation } }) => draw(
-        dom, simulation, model ),
+    oncreate: ({ dom, attrs: { model, simulation, data_provider } }) => draw(
+        dom, simulation, model, data_provider ),
+    onupdate: ({ dom, attrs: { model, simulation, data_provider } }) => draw(
+        dom, simulation, model, data_provider ),
     view: () => m('svg.w-100.h-100'),
 };
 
 const Page = {
-    view: ({ attrs: { model, simulation, generation }}) => m(
+    view: ({ attrs: { model, simulation, generation, data_provider }}) => m(
         '.avenir.flex.flex-column.pa2.w-100.h-100',
         {
             class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
@@ -66,6 +66,9 @@ const Page = {
                 '.f3',
                 'Link threshold:',
                 m('input[type=number].bg-transparent.b--transparent.tc.f4', {
+                    class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
+                    'near-white' :
+                    'near-black',
                     value: model.threshold,
                     oninput: ({ target: { value } }) => model.threshold = +value,
                     min: 1,
@@ -91,6 +94,9 @@ const Page = {
                 m(
                     'select.bg-transparent.b--transparent.f4',
                     {
+                        class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
+                        'near-white' :
+                        'near-black',
                         onchange: ({ target: { value } }) =>
                         model.imageSet = value,
                     },
@@ -115,7 +121,7 @@ const Page = {
                 )),
             ),
         ),
-        m(Visualisation, { model, simulation }),
+        m(Visualisation, { model, simulation, data_provider }),
     ),
 };
 
@@ -126,7 +132,7 @@ const model = new Model(m.redraw, generation, image);
 const forceData = new ForceData();
 const pokedex = new Pokedex({ protocol: 'https' });
 const data_provider = new Data(pokedex, m.redraw, model, search);
-const simulation = new Simulation(data_provider, forceData);
+const simulation = new Simulation(forceData);
 
 window.addEventListener('resize', () => {
     m.redraw();
@@ -134,7 +140,7 @@ window.addEventListener('resize', () => {
 
 m.route(document.body, '/', {
     '/': {
-        render: () => m(Page, { model, simulation, generation }),
+        render: () => m(Page, { model, simulation, generation, data_provider }),
     },
     '/about': About,
 });

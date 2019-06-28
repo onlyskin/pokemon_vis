@@ -5,15 +5,20 @@ const { getIntersectingElements } = require('./coord');
 const SPRITE_COLUMNS = 15;
 const ACTUAL_SPRITE_SIZE = 150;
 
-function spriteSizeFrom(svgNode) {
+function spriteSizeFrom(svgNode, nodeCount) {
     const { height, width } = boundingDimensions(svgNode);
-    return Math.min(height, width) * 0.07;
+    const totalArea = height * width;
+    const targetFraction = 0.5;
+    const areaPerSprite = (totalArea * targetFraction) / nodeCount;
+    return Math.sqrt(areaPerSprite);
 }
 
-function draw(svgNode, simulation, model) {
+function draw(svgNode, simulation, model, data_provider) {
+    const pokemons = data_provider.dataFor();
+
     const svg = d3.select(svgNode);
     const { height, width } = boundingDimensions(svgNode);
-    const spriteSize = spriteSizeFrom(svgNode);
+    const spriteSize = spriteSizeFrom(svgNode, pokemons.length);
     const spriteScale = spriteSize / ACTUAL_SPRITE_SIZE;
 
     svg.selectAll('.link-group')
@@ -29,9 +34,9 @@ function draw(svgNode, simulation, model) {
         .attr('class', 'node-group');
 
     simulation.updateDimensions(spriteSize);
-    simulation.updateData(model);
+    simulation.updateData(model, pokemons);
 
-    simulation.ontick = tick.bind({ svg });
+    simulation.ontick = tick.bind({ svg, spriteSize });
 
     svg.select('.link-group')
         .selectAll('.link')
@@ -106,9 +111,9 @@ function draw(svgNode, simulation, model) {
 }
 
 function tick() {
-    const { svg } = this;
+    const { svg, spriteSize } = this;
 
-    const offset = spriteSizeFrom(svg.node()) / 2;
+    const offset = 0.5 * spriteSize;
     const { height, width } = boundingDimensions(svg.node());
     const left = -0.5 * width + offset;
     const right = 0.5 * width - offset;
