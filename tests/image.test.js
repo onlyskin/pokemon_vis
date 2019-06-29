@@ -6,7 +6,7 @@ const { Generation } = require('../src/generation');
 const generation = new Generation;
 const [ GEN_1, GEN_2 ] = generation.generations;
 
-o('gets valid image sets', () => {
+('gets valid image sets', () => {
     const image = new Image();
 
     o(image.validImageSets(new Set([GEN_1])))

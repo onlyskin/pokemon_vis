@@ -3,12 +3,12 @@ class Search {
         this._generation = generation;
     }
 
-    match(pokemon, types, generations) {
-        if (pokemon.length === 0) {
-            return pokemon;
+    match(pokemons, types, generations) {
+        if (pokemons.length === 0) {
+            return pokemons;
         }
 
-        return pokemon
+        return pokemons
             .filter(pokemon => generations.has(
                 this._generation.getGeneration(pokemon)))
             .filter(pokemon => pokemon.types.some(type =>

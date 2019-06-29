@@ -100,7 +100,7 @@ const search = new Search(generation);
 const model = new Model(m.redraw, generation, image);
 const forceData = new ForceData();
 const pokedex = new Pokedex({ protocol: 'https' });
-const data_provider = new Data(pokedex, m.redraw, model, search);
+const data_provider = new Data(pokedex, m.redraw, model, search, generation);
 const simulation = new Simulation(forceData, model);
 const draw = new Draw(simulation, model, data_provider);
 

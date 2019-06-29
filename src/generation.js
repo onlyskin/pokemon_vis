@@ -27,6 +27,14 @@ class Generation {
         }
     }
 
+    isFirst(id) {
+        return this.getGeneration({ id }) === GEN_1;
+    }
+
+    isSecond(id) {
+        return this.getGeneration({ id }) === GEN_2;
+    }
+
     get generations() {
         return [ GEN_1, GEN_2];
     }
