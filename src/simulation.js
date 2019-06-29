@@ -1,8 +1,9 @@
 const d3 = require('d3');
 
 class Simulation {
-    constructor(forceData) {
+    constructor(forceData, model) {
         this._forceData = forceData;
+        this._model = model;
         this._simulation = d3.forceSimulation()
             .force('x', d3.forceX().strength(() => 0.005).x(0))
             .force('y', d3.forceY().strength(() => 0.005).y(0))
@@ -17,9 +18,12 @@ class Simulation {
         return this._simulation.nodes();
     }
 
-    updateData(model, pokemons) {
+    updateData(pokemons) {
         const forceData = this._forceData.forceFrom(
-            pokemons, this.nodes, model.threshold);
+            pokemons,
+            this.nodes,
+            this._model.threshold
+        );
 
         this._simulation.nodes(forceData.nodes);
         this._simulation.force('link').links(forceData.links);

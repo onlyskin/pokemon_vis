@@ -4,14 +4,20 @@ module.exports.getIntersectingElements = function(svg, coordinates) {
     irect.y = coordinates[1];
     irect.width = irect.height = 1;
 
-    const intersectingLines = [].slice.call(svg.getIntersectionList(irect, null))
+    const intersectingLines = [].slice.call(
+        svg.getIntersectionList(irect, null))
         .filter(element => element.nodeName === 'line')
         .filter(element => {
             const coord = new Coord(irect.x, irect.y);
             const line = new Line(
                 new Coord(element.x1.baseVal.value, element.y1.baseVal.value),
                 new Coord(element.x2.baseVal.value, element.y2.baseVal.value));
-            return coordInRhombus(line, parseInt(element.style.strokeWidth), coord);
+
+            return coordInRhombus(
+                line,
+                parseInt(element.style.strokeWidth),
+                coord,
+            );
         });
 
     return intersectingLines;
@@ -53,13 +59,16 @@ function getPerpendicularLineEquations(line) {
 	return [equationOne, equationTwo];
 }
 
-// returns a new equation also with a positive offset, you can simpy negate this for the other side
+// returns a new equation also with a positive offset, you can simpy negate
+// this for the other side
 function getParallelLineEquations(line, perpDistance) {
 	const equation = line.getEquation();
 	const coefficient = equation.coefficient;
     const offset = equation.offset;
 
-	const verticalDistance = perpDistance * Math.sqrt(coefficient * coefficient + 1);
+	const verticalDistance = perpDistance * Math.sqrt(
+        coefficient * coefficient + 1
+    );
 	const equationOne = new Equation(coefficient, offset + verticalDistance);
 	const equationTwo = new Equation(coefficient, offset - verticalDistance);
 	return [equationOne, equationTwo];

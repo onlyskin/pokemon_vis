@@ -1,8 +1,9 @@
 const m = require('mithril');
 const { Pokedex } = require('pokeapi-js-wrapper');
 
+const { About } = require('./about');
 const { Simulation } = require('./simulation');
-const { draw } = require('./draw');
+const { Draw } = require('./draw');
 const { Model } = require('./model');
 const { TYPES } = require('./constant');
 const { Generation } = require('./generation');
@@ -11,52 +12,21 @@ const { Data } = require('./data');
 const { ForceData } = require('./force_data');
 const { Search } = require('./search');
 
-const About = {
-    view: () => m(
-        '.avenir.flex.flex-column.bg-black.white.ma2',
-        m(
-            '.fw5.f3',
-            'A force directed graph created with D3.js: visually mapping links between Pokémon based on the number of shared moves in their movesets.'
-        ),
-        m('.mv2',
-            [
-                'Two Pokémon will have a link drawn between them if the number of moves they share is',
-                m('em',
-                    'more than or equal to'
-                ),
-                'the threshold. For example, as Bulbasaur, Ivysaur and Venusaur all share the same 14 moves in their moveset, if you set the threshold to 14 or less, they will have links drawn between them, but if the threshold is set any higher than 14 there will be no link drawn.'
-            ]
-        ),
-        m('.mv2',
-            'Hover over a specific link to find out which moves the two pokemon share!'
-        ),
-        m('.mv2',
-            'The higher you set the threshold, the fewer links will be drawn. This is because fewer Pokémon share so many of their moves with other Pokémon.'
-        ),
-        m('.mv2',
-            'You can adjust the threshold for the number of shared moves needed using the input box below.'
-        ),
-        m('.mv2',
-        ),
-        m('.mv2',
-            'You can drag Pokémon around using the mouse.'
-        ),
-    ),
-};
-
 const Visualisation = {
-    oncreate: ({ dom, attrs: { model, simulation, data_provider } }) => draw(
-        dom, simulation, model, data_provider ),
-    onupdate: ({ dom, attrs: { model, simulation, data_provider } }) => draw(
-        dom, simulation, model, data_provider ),
+    oncreate: ({ dom, attrs: { draw } }) => draw.render(dom),
+    onupdate: ({ dom, attrs: { draw } }) => draw.render(dom),
     view: () => m('svg.w-100.h-100'),
 };
 
+function isNight() {
+    return new Date().getHours() < 6 || new Date().getHours() > 18;
+}
+
 const Page = {
-    view: ({ attrs: { model, simulation, generation, data_provider }}) => m(
+    view: ({ attrs: { model, draw, generation, data_provider }}) => m(
         '.avenir.flex.flex-column.pa2.w-100.h-100',
         {
-            class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
+            class: isNight() ?
             'bg-near-black near-white' :
             'bg-near-white near-black',
         },
@@ -66,13 +36,11 @@ const Page = {
                 '.f3',
                 'Link threshold:',
                 m('input[type=number].bg-transparent.b--transparent.tc.f4', {
-                    class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
-                    'near-white' :
-                    'near-black',
+                    class: isNight() ?  'near-white' : 'near-black',
                     value: model.threshold,
-                    oninput: ({ target: { value } }) => model.threshold = +value,
+                    oninput: e => model.threshold = +e.target.value,
                     min: 1,
-                    max: 20,
+                    max: data_provider.maxSharedMoves(),
                 })
             ),
             m(
@@ -94,11 +62,10 @@ const Page = {
                 m(
                     'select.bg-transparent.b--transparent.f4',
                     {
-                        class: new Date().getHours() < 6 || new Date().getHours() > 18 ?
+                        class: isNight() ?
                         'near-white' :
                         'near-black',
-                        onchange: ({ target: { value } }) =>
-                        model.imageSet = value,
+                        onchange: e => model.imageSet = e.target.value,
                     },
                     image.validImageSets(model.generations).map(imageSet => m(
                         'option',
@@ -114,14 +81,16 @@ const Page = {
                 TYPES.map(type => m(
                     '.black.br-pill.ba.b--purple.pa2.ma1',
                     {
-                        class: model.isActiveType(type) ? 'bg-white' : 'bg-gray',
+                        class: model.isActiveType(type) ?
+                        'bg-white' :
+                        'bg-gray',
                         onclick: () => model.toggleType(type),
                     },
                     type
                 )),
             ),
         ),
-        m(Visualisation, { model, simulation, data_provider }),
+        m(Visualisation, { draw }),
     ),
 };
 
@@ -132,7 +101,8 @@ const model = new Model(m.redraw, generation, image);
 const forceData = new ForceData();
 const pokedex = new Pokedex({ protocol: 'https' });
 const data_provider = new Data(pokedex, m.redraw, model, search);
-const simulation = new Simulation(forceData);
+const simulation = new Simulation(forceData, model);
+const draw = new Draw(simulation, model, data_provider);
 
 window.addEventListener('resize', () => {
     m.redraw();
@@ -140,7 +110,10 @@ window.addEventListener('resize', () => {
 
 m.route(document.body, '/', {
     '/': {
-        render: () => m(Page, { model, simulation, generation, data_provider }),
+        render: () => m(
+            Page,
+            { model, draw, generation, data_provider }
+        ),
     },
     '/about': About,
 });

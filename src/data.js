@@ -29,12 +29,16 @@ class Data {
         return await this._pokedex.getPokemonByName(name);
     }
 
-    dataFor() {
+    get pokemons() {
         return this._search.match(
             this._pokemon,
             this._model.types,
             this._model.generations,
         );
+    }
+
+    maxSharedMoves() {
+        return 20;
     }
 }
 
