@@ -1,3 +1,6 @@
+const UNTOUCHED = 'never_loaded';
+const LOADING = 'loading';
+
 class Data {
     constructor(pokedex, redraw, model, search, generation) {
         this._pokedex = pokedex;
@@ -16,47 +19,45 @@ class Data {
         const names = results
             .map(pokemon => pokemon.name);
 
-        names.forEach(name => this._loadedPokemon[name] = null);
+        names.forEach(name => this._loadedPokemon[name] = UNTOUCHED);
+        this._redraw();
     }
 
-    async _loadPokemon() {
-        this._namesForGen()
+    get pokemons() {
+        this._loadNewPokemon();
+
+        return this._search.match(
+            Object.values(this._loadedPokemon).filter(value =>
+                value !== UNTOUCHED && value !== LOADING),
+            this._model.types,
+            this._model.generations,
+        );
+    }
+
+    async _loadNewPokemon() {
+        this._unloadedForGen()
             .forEach(async (name) => {
-                this._loadedPokemon[name] = false;
+                this._loadedPokemon[name] = LOADING;
                 try {
                     const pokemon = await this._pokedex.getPokemonByName(name);
                     this._loadedPokemon[name] = pokemon;
                     this._redraw();
-                } catch { console.error(`Pokeapi error: ${name}`) }
+                } catch (e) { console.error(`Pokeapi error: ${name}`); }
             });
     }
 
-    _namesForGen() {
-        return Object.keys(this._loadedPokemon)
-            .filter((_, i) => {
-                const pokemonGeneration = this._generation
-                    .getGeneration({ id: i + 1 })
-                return this._model.generations.has(pokemonGeneration);
-            });
+    _unloadedForGen() {
+        return Object.entries(this._loadedPokemon)
+            .filter((entry, i) => {
+                return this._isSelectedGeneration(i) && entry[1] === UNTOUCHED;
+            })
+            .map(entry => entry[0]);
     }
 
-    get pokemons() {
-        if (this._loaded()) {
-            return this._search.match(
-                Object.values(this._loadedPokemon)
-                .filter(value => value !== false && value !== null),
-                this._model.types,
-                this._model.generations,
-            );
-        } else {
-            this._loadPokemon();
-            return [];
-        }
-    }
-
-    _loaded() {
-        return this._namesForGen()
-            .every(name => this._loadedPokemon[name] !== null);
+    _isSelectedGeneration(index) {
+        return this._model.generations.has(
+            this._generation.getGeneration({ id: index + 1 })
+        );
     }
 
     maxSharedMoves() {

@@ -45,7 +45,7 @@ o.spec('get pokemons', () => {
 
         pokedex = o.spy();
         pokedex.getPokemonsList = o.spy(() => namesPromise);
-        pokedex.getPokemonByName = (name) => pokemonDataPromises[name];
+        pokedex.getPokemonByName = o.spy((name) => pokemonDataPromises[name]);
     });
 
     o('returns available pokemon where not all are loaded', async () => {
@@ -103,10 +103,10 @@ o.spec('get pokemons', () => {
         await Promise.all(Object.values(pokemonDataPromises));
 
         o(data._loadedPokemon).deepEquals({
-            'bulbasaur': null,
-            'mew': null,
-            'chikorita': null,
-            'cyndaquil': null,
+            'bulbasaur': 'never_loaded',
+            'mew': 'never_loaded',
+            'chikorita': 'never_loaded',
+            'cyndaquil': 'never_loaded',
         });
     });
 
@@ -123,15 +123,34 @@ o.spec('get pokemons', () => {
         o(pokedex.getPokemonsList.callCount).deepEquals(1);
     });
 
-    o('calls redraw when new pokemon are loaded', async () => {
+    o('calls redraw on name loading and when new pokemon are loaded', async () => {
         const data = new Data(pokedex, redraw, model, search, generation);
 
+        o(redraw.callCount).equals(0);
         await namesPromise;
         data.pokemons;
 
-        o(redraw.callCount).equals(0);
+        o(redraw.callCount).equals(1);
         await pokemonDataPromises['bulbasaur'];
         await pokemonDataPromises['mew'];
-        o(redraw.callCount).equals(2);
+        o(redraw.callCount).equals(3);
+    });
+
+    o('doesnt redownload already retrieved pokemon', async () => {
+        const data = new Data(pokedex, redraw, model, search, generation);
+
+        await namesPromise;
+
+        data.pokemons
+        await pokemonDataPromises['mew'];
+        await pokemonDataPromises['bulbasaur'];
+        o(data.pokemons).deepEquals([ bulbasaur, mew ]);
+
+        model.toggleGeneration('gen_2');
+        data.pokemons
+        await pokemonDataPromises['chikorita'];
+        await pokemonDataPromises['cyndaquil'];
+        o(data.pokemons).deepEquals([ bulbasaur, mew, chikorita, cyndaquil ]);
+        o(pokedex.getPokemonByName.callCount).equals(4);
     });
 });

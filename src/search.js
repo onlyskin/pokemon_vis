@@ -4,10 +4,6 @@ class Search {
     }
 
     match(pokemons, types, generations) {
-        if (pokemons.length === 0) {
-            return pokemons;
-        }
-
         return pokemons
             .filter(pokemon => generations.has(
                 this._generation.getGeneration(pokemon)))
