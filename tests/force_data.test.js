@@ -62,19 +62,20 @@ o.spec('addPokemon', () => {
 
         const nodes = [];
 
-        const expected = {
+        const expected = JSON.stringify({
             'nodes': [
                 {
                     'name': 'bulbasaur',
                     'number': 1,
-                    'moves': [
+                    'moves': new Set([
                         'vine-whip',
-                    ]
+                    ]),
                 }
             ],
             'links': []
-        };
-        o(forceData.forceFrom(pokemons, nodes, 0)).deepEquals(expected);
+        });
+        const actual = JSON.stringify(forceData.forceFrom(pokemons, nodes, 0));
+        o(actual).deepEquals(expected);
     });
 
     o('adds next pokemon', () => {
@@ -95,9 +96,9 @@ o.spec('addPokemon', () => {
             {
                 'name': 'bulbasaur',
                 'number': 1,
-                'moves': [
+                'moves': new Set([
                     'vine-whip',
-                ],
+                ]),
                 'index': 0,
                 'x': 624.2553712354669,
                 'y': 458.29530522022213,
@@ -106,14 +107,14 @@ o.spec('addPokemon', () => {
             }
         ];
 
-        const expected = {
+        const expected = JSON.stringify({
             'nodes': [
                 {
                     'name': 'bulbasaur',
                     'number': 1,
-                    'moves': [
+                    'moves': new Set([
                         'vine-whip',
-                    ],
+                    ]),
                     'index': 0,
                     'x': 624.2553712354669,
                     'y': 458.29530522022213,
@@ -123,21 +124,22 @@ o.spec('addPokemon', () => {
                 {
                     'name': 'ivysaur',
                     'number': 2,
-                    'moves': [
+                    'moves': new Set([
                         'vine-whip',
-                    ],
+                    ]),
                 }
             ],
             'links': [
                 {
                     'source': 'bulbasaur',
                     'target': 'ivysaur',
-                    'shared_moves': [
+                    'sharedMoves': new Set([
                         'vine-whip',
-                    ],
+                    ]),
                 }
             ]
-        };
-        o(forceData.forceFrom(pokemons, nodes, 0)).deepEquals(expected);
+        });
+        const actual = JSON.stringify(forceData.forceFrom(pokemons, nodes, 0));
+        o(actual).deepEquals(expected);
     })
 });

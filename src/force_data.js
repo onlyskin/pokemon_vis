@@ -1,3 +1,16 @@
+const cachedMoves = {};
+const cachedSharedMoves = {};
+
+function intersection(setA, setB) {
+    var _intersection = new Set();
+    for (var elem of setB) {
+        if (setA.has(elem)) {
+            _intersection.add(elem);
+        }
+    }
+    return _intersection;
+}
+
 class ForceData {
     forceFrom(pokemons, existingNodes, threshold) {
         const existingPhysics = {};
@@ -11,29 +24,30 @@ class ForceData {
 
         return {
             nodes: nodes,
-            links: this._linksFrom(nodes).filter(link =>
-                link.shared_moves.length >= threshold),
+            links: this._linksFrom(nodes, threshold),
         };
     }
 
-    _linksFrom(nodes) {
+    _linksFrom(nodes, threshold) {
         const links = [];
 
-        nodes.forEach((source_node, i) => {
-            nodes.forEach((target_node, j) => {
+        nodes.forEach((sourceNode, i) => {
+            nodes.forEach((targetNode, j) => {
                 if (i < j) {
-                    const link = {};
-                    link.source = source_node.name;
-                    link.target = target_node.name;
-                    link.shared_moves = source_node.moves
-                        .reduce((moves, move) => {
-                            return target_node.moves.includes(move) ?
-                                moves.concat(move) :
-                                moves;
-                        }, []);
+                    const cacheKey = `${sourceNode.name}${targetNode.name}`;
+                    if (cachedSharedMoves[cacheKey] === undefined) {
+                        cachedSharedMoves[cacheKey] = intersection(
+                            sourceNode.moves, targetNode.moves
+                        );
+                    }
 
-                    if (link.shared_moves.length > 0) {
-                        links.push(link);
+                    const sharedMoves = cachedSharedMoves[cacheKey];
+                    if (sharedMoves.size >= threshold) {
+                        links.push({
+                            source: sourceNode.name,
+                            target: targetNode.name,
+                            sharedMoves,
+                        });
                     }
                 }
             });
@@ -57,9 +71,15 @@ class ForceData {
     }
 
     _movesFrom(pokemon) {
-        return pokemon.moves
-            .filter(this._isLevelUpMove)
-            .map(moveData => moveData.move.name);
+        if (cachedMoves[pokemon.name] === undefined) {
+            cachedMoves[pokemon.name] = new Set(
+                pokemon.moves
+                .filter(this._isLevelUpMove)
+                .map(moveData => moveData.move.name)
+            );
+        }
+
+        return cachedMoves[pokemon.name];
     }
 
     _isLevelUpMove(moveData) {

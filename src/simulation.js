@@ -55,7 +55,7 @@ class Simulation {
             .distanceMax(spriteSize * 4);
         this._simulation
             .force('link')
-            .distance(link => spriteSize * 2 * (1 / link.shared_moves.length));
+            .distance(link => spriteSize * 2 * (1 / link.sharedMoves.size));
     }
 
     get ontick() {

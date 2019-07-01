@@ -184,7 +184,7 @@ class Draw {
         if (element !== undefined) {
             const data = element.__data__;
             console.log('source, target:', data.source.name, data.target.name);
-            console.log('shared moves:', data.shared_moves);
+            console.log('shared moves:', data.sharedMoves);
             this._makeTooltip(d, data);
         }
     }
@@ -217,7 +217,7 @@ class Draw {
             .attr('class', 'heading')
             .text(`${data.source.name}-${data.target.name}`);
 
-        data.shared_moves.map((o) => {
+        Array.from(data.sharedMoves).map((o) => {
             tooltip.append('p')
                 .attr('class', 'movename')
                 .text(o);

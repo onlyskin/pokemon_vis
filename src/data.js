@@ -36,13 +36,21 @@ class Data {
 
     async _loadNewPokemon() {
         this._unloadedForGen()
-            .forEach(async (name) => {
+            .forEach((name, i) => {
                 this._loadedPokemon[name] = LOADING;
-                try {
-                    const pokemon = await this._pokedex.getPokemonByName(name);
-                    this._loadedPokemon[name] = pokemon;
-                    this._redraw();
-                } catch (e) { console.error(`Pokeapi error: ${name}`); }
+                setTimeout(async () => {
+                    try {
+                        const pokemon = await this._pokedex.getPokemonByName(name);
+                        this._loadedPokemon[name] = pokemon;
+                        if (!this._pendingRedraw) {
+                            this._pendingRedraw = true;
+                            requestAnimationFrame(() => {
+                                this._pendingRedraw = false;
+                                this._redraw();
+                            });
+                        }
+                    } catch (e) { console.error(`Pokeapi error: ${name}`); }
+                }, 48 * i);
             });
     }
 
