@@ -12,14 +12,22 @@ function intersection(setA, setB) {
 }
 
 class ForceData {
-    forceFrom(pokemons, existingNodes, threshold) {
-        const existingPhysics = {};
+    forceFrom(pokemons, existingNodes, existingLinks, threshold) {
+        const existingNamesToNodes = {};
         existingNodes.forEach(node => {
-            existingPhysics[node.name] = node;
+            existingNamesToNodes[node.name] = node;
         });
 
-        const nodes = pokemons.map(pokemon => {
-            return this._nodeFrom(pokemon, existingPhysics);
+        const nodes = [];
+        pokemons.forEach(pokemon => {
+            const name = pokemon.name;
+            const existingNode = existingNamesToNodes[name];
+
+            if (existingNode === undefined) {
+                nodes.push(this._nodeFrom(pokemon));
+            } else {
+                nodes.push(existingNode);
+            }
         });
 
         return {
@@ -56,18 +64,12 @@ class ForceData {
         return links;
     }
 
-    _nodeFrom(pokemon, existingPhysics) {
-        const node = {
+    _nodeFrom(pokemon) {
+        return {
             'name': pokemon.name,
             'number': pokemon.id,
             'moves': this._movesFrom(pokemon),
         };
-
-        if (existingPhysics[pokemon.name] !== undefined) {
-            Object.assign(node, existingPhysics[pokemon.name]);
-        }
-
-        return node;
     }
 
     _movesFrom(pokemon) {

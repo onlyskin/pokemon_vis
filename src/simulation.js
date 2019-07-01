@@ -22,6 +22,7 @@ class Simulation {
         const forceData = this._forceData.forceFrom(
             pokemons,
             this.nodes,
+            this.links,
             this._model.threshold
         );
 

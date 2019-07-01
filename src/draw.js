@@ -56,7 +56,7 @@ class Draw {
                 exit => exit.remove(),
             )
             .style('stroke-width', link =>
-                link.sharedMoves.size * spriteScale);
+                link.sharedMoves.size * spriteSize * 0.01);
 
         const updatingNodes = svg.select('.node-group')
             .selectAll('.node')
@@ -116,7 +116,7 @@ class Draw {
             updatingNodes.select('image'));
 
         mergedImages
-            .attr('xlink:href', this._model.spriteUrl)
+            .attr('href', this._model.spriteUrl)
             .attr('transform', d => {
                 const x = -this._xSpriteOffset(d.number) * spriteScale;
                 const y = -this._ySpriteOffset(d.number) * spriteScale;

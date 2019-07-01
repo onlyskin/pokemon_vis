@@ -2,12 +2,22 @@ const UNTOUCHED = 'never_loaded';
 const LOADING = 'loading';
 
 class Data {
-    constructor(pokedex, redraw, model, search, generation) {
+    constructor(
+        pokedex,
+        redraw,
+        model,
+        search,
+        generation,
+        requestAnimationFrame,
+        loadInterval,
+    ) {
         this._pokedex = pokedex;
         this._redraw = redraw;
         this._model = model;
         this._search = search;
         this._generation = generation;
+        this._requestAnimationFrame = requestAnimationFrame;
+        this._loadInterval = loadInterval;
 
         this._loadedPokemon = {};
 
@@ -44,13 +54,13 @@ class Data {
                         this._loadedPokemon[name] = pokemon;
                         if (!this._pendingRedraw) {
                             this._pendingRedraw = true;
-                            requestAnimationFrame(() => {
+                            this._requestAnimationFrame(() => {
                                 this._pendingRedraw = false;
                                 this._redraw();
                             });
                         }
-                    } catch (e) { console.error(`Pokeapi error: ${name}`); }
-                }, 48 * i);
+                    } catch (e) { console.error(e); }
+                }, this._loadInterval * i);
             });
     }
 

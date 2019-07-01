@@ -7,7 +7,7 @@ class Image {
         this._image_sets = {
             [TROZEI]: {
                 string: 'Trozei',
-                url: `${env.IMAGES_URL}/trozei.png` ,
+                url: `${env.IMAGES_URL}/trozei.png`,
                 size: 128,
             },
             [YELLOW]: {

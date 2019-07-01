@@ -17,17 +17,20 @@ o.spec('get pokemons', () => {
     let redraw;
     let namesPromise;
     let pokemonDataPromises;
+    let requestAnimationFrame = () => {};
     const generation = {
         getGeneration: ({ id }) => {
             return id < 3 ? 'gen_1' : 'gen_2';
         },
-        generations: ['gen_1', 'gen_2'],
+        generations: ['gen_1', 'gen_2', 'gen_3'],
     };
     const search = new Search(generation);
 
     o.beforeEach(() => {
-        model = new Model(null, generation, new Image());
+        global.env = { IMAGES_URL: '' };
+
         redraw = o.spy();
+        model = new Model(redraw, generation, new Image());
 
         namesPromise = Promise.resolve({ results: [
             { name: 'bulbasaur' },
@@ -49,7 +52,7 @@ o.spec('get pokemons', () => {
     });
 
     o('returns available pokemon where not all are loaded', async () => {
-        const data = new Data(pokedex, redraw, model, search, generation);
+        const data = new Data(pokedex, redraw, model, search, generation, requestAnimationFrame, 0);
         pokemonDataPromises.bulbasaur = Promise.reject();
 
         await namesPromise;
@@ -60,8 +63,8 @@ o.spec('get pokemons', () => {
         o(data.pokemons).deepEquals([ mew ]);
     });
 
-    o('returns generation 1 pokemon after all are loaded', async () => {
-        const data = new Data(pokedex, redraw, model, search, generation);
+    o.only('returns generation 1 pokemon after all are loaded', async () => {
+        const data = new Data(pokedex, redraw, model, search, generation, requestAnimationFrame, 0);
 
         await namesPromise;
         o(data.pokemons).deepEquals([]);
@@ -72,7 +75,7 @@ o.spec('get pokemons', () => {
     });
 
     o('returns generation 2 pokemon after all are loaded', async () => {
-        const data = new Data(pokedex, redraw, model, search, generation);
+        const data = new Data(pokedex, redraw, model, search, generation, requestAnimationFrame, 0);
         model.toggleGeneration('gen_1');
         model.toggleGeneration('gen_2');
 
@@ -85,7 +88,7 @@ o.spec('get pokemons', () => {
     });
 
     o('returns all pokemon once loaded', async () => {
-        const data = new Data(pokedex, redraw, model, search, generation);
+        const data = new Data(pokedex, redraw, model, search, generation, requestAnimationFrame, 0);
         model.toggleGeneration('gen_2');
 
         await namesPromise;
@@ -96,7 +99,7 @@ o.spec('get pokemons', () => {
     });
 
     o('doesnt request any data if no generations active', async () => {
-        const data = new Data(pokedex, redraw, model, search, generation);
+        const data = new Data(pokedex, redraw, model, search, generation, requestAnimationFrame, 0);
         model.toggleGeneration('gen_1');
 
         await namesPromise;
@@ -111,7 +114,7 @@ o.spec('get pokemons', () => {
     });
 
     o('only requests names once at the start', async () => {
-        const data = new Data(pokedex, redraw, model, search, generation);
+        const data = new Data(pokedex, redraw, model, search, generation, requestAnimationFrame, 0);
 
         await namesPromise;
         await pokemonDataPromises['bulbasaur'];
@@ -124,7 +127,7 @@ o.spec('get pokemons', () => {
     });
 
     o('calls redraw on name loading and when new pokemon are loaded', async () => {
-        const data = new Data(pokedex, redraw, model, search, generation);
+        const data = new Data(pokedex, redraw, model, search, generation, requestAnimationFrame, 0);
 
         o(redraw.callCount).equals(0);
         await namesPromise;
@@ -137,7 +140,7 @@ o.spec('get pokemons', () => {
     });
 
     o('doesnt redownload already retrieved pokemon', async () => {
-        const data = new Data(pokedex, redraw, model, search, generation);
+        const data = new Data(pokedex, redraw, model, search, generation, requestAnimationFrame, 0);
 
         await namesPromise;
 

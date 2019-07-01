@@ -5,7 +5,7 @@ const { About } = require('./about');
 const { Simulation } = require('./simulation');
 const { Draw } = require('./draw');
 const { Model } = require('./model');
-const { TYPES } = require('./constant');
+const { TYPES, LOAD_INTERVAL } = require('./constant');
 const { Generation } = require('./generation');
 const { Image } = require('./image');
 const { Data } = require('./data');
@@ -100,7 +100,8 @@ const search = new Search(generation);
 const model = new Model(m.redraw, generation, image);
 const forceData = new ForceData();
 const pokedex = new Pokedex({ protocol: 'https' });
-const data_provider = new Data(pokedex, m.redraw, model, search, generation);
+const data_provider = new Data(pokedex, m.redraw, model, search, generation,
+                               requestAnimationFrame.bind(window), LOAD_INTERVAL);
 const simulation = new Simulation(forceData, model);
 const draw = new Draw(simulation, model, data_provider);
 
