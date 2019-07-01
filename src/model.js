@@ -56,6 +56,10 @@ class Model {
         return this._image.getUrl(this.imageSet);
     }
 
+    get actualSpriteSize() {
+        return this._image.getActualSpriteSize(this.imageSet);
+    }
+
     get imageSet() {
         return this._imageSet();
     }

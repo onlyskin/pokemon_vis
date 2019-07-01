@@ -7,7 +7,8 @@
   "scripts": {
     "test": "ospec",
     "lint": "jshint src",
-    "build": "./build"
+    "build-dev": "./build dev",
+    "build-prod": "./build prod"
   },
   "dependencies": {
     "d3": "^5.9.1",

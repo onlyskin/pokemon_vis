@@ -1,22 +1,24 @@
-const SPRITE_URL = 'https://s3.eu-west-2.amazonaws.com/pokemon-sprite-sheets';
-const RED_BLUE = 'rb';
+const TROZEI = 'trozei';
 const YELLOW = 'yellow';
 const GOLD = 'gold';
 
 class Image {
     constructor() {
         this._image_sets = {
-            [RED_BLUE]: {
-                string: 'Red/Blue',
-                url: `${SPRITE_URL}/rb.png` 
+            [TROZEI]: {
+                string: 'Trozei',
+                url: `${env.IMAGES_URL}/trozei.png` ,
+                size: 128,
             },
             [YELLOW]: {
                 string: 'Yellow',
-                url: `${SPRITE_URL}/yellow.png` 
+                url: `${env.IMAGES_URL}/yellow.png`,
+                size: 60,
             },
             [GOLD]: {
                 string: 'Gold',
-                url: `${SPRITE_URL}/gold.png` 
+                url: `${env.IMAGES_URL}/gold.png`,
+                size: 60,
             },
         };
     }
@@ -25,8 +27,12 @@ class Image {
         return this._image_sets[imageSet].url;
     }
 
+    getActualSpriteSize(imageSet) {
+        return this._image_sets[imageSet].size;
+    }
+
     get imageSets() {
-        return [ RED_BLUE, YELLOW, GOLD];
+        return [ TROZEI, YELLOW, GOLD];
     }
 
     validImageSets(generations) {

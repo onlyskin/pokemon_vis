@@ -3,7 +3,6 @@ const d3 = require('d3');
 const { getIntersectingElements } = require('./coord');
 
 const SPRITE_COLUMNS = 15;
-const ACTUAL_SPRITE_SIZE = 150;
 
 function boundingDimensions(svgNode) {
     const boundingRect = svgNode.getBoundingClientRect();
@@ -25,7 +24,7 @@ class Draw {
         const svg = d3.select(svgNode);
         const { height, width } = boundingDimensions(svgNode);
         const spriteSize = this._spriteSizeFrom(svgNode, pokemons.length);
-        const spriteScale = spriteSize / ACTUAL_SPRITE_SIZE;
+        const spriteScale = spriteSize / this._model.actualSpriteSize;
 
         svg.selectAll('.link-group')
             .data([0])
@@ -57,7 +56,7 @@ class Draw {
                 exit => exit.remove(),
             )
             .style('stroke-width', link =>
-                link.shared_moves.length * spriteScale);
+                link.sharedMoves.size * spriteScale);
 
         const updatingNodes = svg.select('.node-group')
             .selectAll('.node')
@@ -84,16 +83,24 @@ class Draw {
             .append('clipPath');
 
         enteringClipPaths
-            .attr('height', ACTUAL_SPRITE_SIZE)
-            .attr('width', ACTUAL_SPRITE_SIZE)
             .attr('id', d => `${d.name}-clip`);
+
+        const mergedClipPaths = enteringClipPaths.merge(
+            updatingNodes.select('clipPath'));
+
+        mergedClipPaths
+            .attr('height', this._model.actualSpriteSize)
+            .attr('width', this._model.actualSpriteSize);
 
         const enteringClipPathRects = enteringClipPaths
             .append('rect');
 
-        enteringClipPathRects
-            .attr('height', ACTUAL_SPRITE_SIZE)
-            .attr('width', ACTUAL_SPRITE_SIZE)
+        const mergedClipPathRects = enteringClipPathRects.merge(
+            updatingNodes.select('rect'));
+
+        mergedClipPathRects
+            .attr('height', this._model.actualSpriteSize)
+            .attr('width', this._model.actualSpriteSize)
             .attr('x', d => this._xSpriteOffset(d.number))
             .attr('y', d => this._ySpriteOffset(d.number));
 
@@ -162,11 +169,11 @@ class Draw {
     }
 
     _xSpriteOffset(index) {
-        return ((index - 1) % SPRITE_COLUMNS) * ACTUAL_SPRITE_SIZE;
+        return ((index - 1) % SPRITE_COLUMNS) * this._model.actualSpriteSize;
     }
 
     _ySpriteOffset(index) {
-        return (Math.floor((index - 1) / SPRITE_COLUMNS)) * ACTUAL_SPRITE_SIZE;
+        return (Math.floor((index - 1) / SPRITE_COLUMNS)) * this._model.actualSpriteSize;
     }
 
     _handleMousemove(d) {
