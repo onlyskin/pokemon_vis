@@ -24,7 +24,7 @@ function isNight() {
 
 const Page = {
     view: ({ attrs: { model, draw, generation, data_provider }}) => m(
-        '.avenir.flex.flex-column.pa2.w-100.h-100',
+        '.avenir.flex.flex-column.pa2.w-100.h-100.no-select',
         {
             class: isNight() ?
             'bg-near-black near-white' :
@@ -78,19 +78,38 @@ const Page = {
             ),
             m(
                 '.f5.flex.flex-wrap',
-                TYPES.map(type => m(
-                    '.black.br-pill.ba.b--purple.pa2.ma1',
-                    {
-                        class: model.isActiveType(type) ?
-                        'bg-white' :
-                        'bg-gray',
-                        onclick: () => model.toggleType(type),
-                    },
-                    type
-                )),
+                TYPES.map(type => m(TypeButton, { type, model })),
             ),
         ),
         m(Visualisation, { draw, imageSet: model.imageSet }),
+    ),
+};
+
+const TypeButton = {
+    oninit: ({ state }) => state.pendingClick = null,
+    view: ({ state, attrs: { type, model } }) => m(
+        '.black.br-pill.ba.b--purple.pa2.ma1',
+        {
+            class: model.isActiveType(type) ?
+            'bg-white' :
+            'bg-gray',
+            onclick: e => {
+                if (state.pendingClick !== null) {
+                    clearTimeout(state.pendingClick);
+                    state.pendingClick = null;
+                }
+
+                if (e.detail === 1) {
+                    state.pendingClick = setTimeout(() => {
+                        model.toggleType(type);
+                        m.redraw();
+                    }, 200);
+                } else {
+                    model.focusType(type);
+                }
+            },
+        },
+        type
     ),
 };
 

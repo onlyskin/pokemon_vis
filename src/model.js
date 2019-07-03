@@ -36,6 +36,14 @@ class Model {
         }
     }
 
+    focusType(type) {
+        if (this._types().size === 1 && this._types().has(type)) {
+            this._types(new Set(TYPES));
+        } else {
+            this._types(new Set([type]));
+        }
+    }
+
     get generations() {
         return this._generations();
     }
