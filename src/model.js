@@ -50,14 +50,15 @@ class Model {
         } else {
             this._generations().add(generation);
         }
+
+        this._checkImageSet();
     }
 
-    get spriteUrl() {
-        return this._image.getUrl(this.imageSet);
-    }
-
-    get actualSpriteSize() {
-        return this._image.getActualSpriteSize(this.imageSet);
+    _checkImageSet() {
+        const validImageSets = this._image.validImageSets(this.generations)
+        if (!validImageSets.includes(this.imageSet)) {
+            this.imageSet = validImageSets[0];
+        }
     }
 
     get imageSet() {

@@ -13,7 +13,8 @@
         "window": true,
         "clearTimeout": true,
         "setTimeout": true,
-        "firebaseui": true
+        "firebaseui": true,
+        "requestAnimationFrame": true
     },
     "esversion": 8
 }

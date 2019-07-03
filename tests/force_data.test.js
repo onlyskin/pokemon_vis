@@ -60,8 +60,7 @@ o.spec('addPokemon', () => {
             moves: [ vineWhipLevelUp, razorWindEgg ],
         }];
 
-        const nodes = [];
-        const links = [];
+        const data = { nodes: [], links: [], threshold: 0};
 
         const expected = JSON.stringify({
             'nodes': [
@@ -75,7 +74,7 @@ o.spec('addPokemon', () => {
             ],
             'links': []
         });
-        const actual = JSON.stringify(forceData.forceFrom(pokemons, nodes, links, 0));
+        const actual = JSON.stringify(forceData.forceFrom(pokemons, data, 0));
         o(actual).deepEquals(expected);
     });
 
@@ -98,22 +97,24 @@ o.spec('addPokemon', () => {
             },
         ];
 
-        const nodes = [
-            {
-                'name': 'bulbasaur',
-                'number': 1,
-                'moves': new Set([
-                    'vine-whip',
-                ]),
-                'index': 0,
-                'x': 624.2553712354669,
-                'y': 458.29530522022213,
-                'vy': -13.621707500753173,
-                'vx': -19.05447720983199
-            }
-        ];
-
-        const links = [];
+        const data = {
+            nodes: [
+                {
+                    'name': 'bulbasaur',
+                    'number': 1,
+                    'moves': new Set([
+                        'vine-whip',
+                    ]),
+                    'index': 0,
+                    'x': 624.2553712354669,
+                    'y': 458.29530522022213,
+                    'vy': -13.621707500753173,
+                    'vx': -19.05447720983199
+                }
+            ],
+            links: [],
+            threshold: 0,
+        };
 
         const expected = JSON.stringify({
             'nodes': [
@@ -168,7 +169,7 @@ o.spec('addPokemon', () => {
                 },
             ]
         });
-        const actual = JSON.stringify(forceData.forceFrom(pokemons, nodes, links, 0));
+        const actual = JSON.stringify(forceData.forceFrom(pokemons, data, 0));
         o(actual).deepEquals(expected);
     })
 
@@ -249,6 +250,8 @@ o.spec('addPokemon', () => {
                 },
             ];
 
+        const data = { nodes, links, threshold: 0 };
+
         const expected = JSON.stringify({
             'nodes': [
                 {
@@ -286,8 +289,12 @@ o.spec('addPokemon', () => {
                 }
             ]
         });
-        console.log('here');
-        const actual = JSON.stringify(forceData.forceFrom(pokemons, nodes, links, 0));
+        const actual = JSON.stringify(forceData.forceFrom(pokemons, data, 0));
         o(actual).deepEquals(expected);
     });
+
+    //o('it can change threshold too', () => {});
+    //o('it works when threshold and pokemons hasnt changed', () => {});
+    //o('same threshold works with links that have been changed to object refs', () => {});
+    //o('different thershold works with links that have been changed to object refs', () => {});
 });

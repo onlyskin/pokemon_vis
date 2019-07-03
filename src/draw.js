@@ -2,8 +2,6 @@ const d3 = require('d3');
 
 const { getIntersectingElements } = require('./coord');
 
-const SPRITE_COLUMNS = 15;
-
 function boundingDimensions(svgNode) {
     const boundingRect = svgNode.getBoundingClientRect();
     const width = boundingRect.width;
@@ -12,19 +10,20 @@ function boundingDimensions(svgNode) {
 }
 
 class Draw {
-    constructor(simulation, model, data_provider) {
+    constructor(simulation, model, data_provider, image) {
         this._simulation = simulation;
-        this._model = model;
         this._data_provider = data_provider;
+        this._image = image;
     }
 
-    render(svgNode) {
+    render(svgNode, imageSet) {
         const pokemons = this._data_provider.pokemons;
 
         const svg = d3.select(svgNode);
         const { height, width } = boundingDimensions(svgNode);
         const spriteSize = this._spriteSizeFrom(svgNode, pokemons.length);
-        const spriteScale = spriteSize / this._model.actualSpriteSize;
+        const actualSpriteSize = this._image.actualSpriteSize(imageSet);
+        const spriteScale = spriteSize / actualSpriteSize;
 
         svg.selectAll('.link-group')
             .data([0])
@@ -89,8 +88,8 @@ class Draw {
             updatingNodes.select('clipPath'));
 
         mergedClipPaths
-            .attr('height', this._model.actualSpriteSize)
-            .attr('width', this._model.actualSpriteSize);
+            .attr('height', actualSpriteSize)
+            .attr('width', actualSpriteSize)
 
         const enteringClipPathRects = enteringClipPaths
             .append('rect');
@@ -99,10 +98,10 @@ class Draw {
             updatingNodes.select('rect'));
 
         mergedClipPathRects
-            .attr('height', this._model.actualSpriteSize)
-            .attr('width', this._model.actualSpriteSize)
-            .attr('x', d => this._xSpriteOffset(d.number))
-            .attr('y', d => this._ySpriteOffset(d.number));
+            .attr('height', actualSpriteSize)
+            .attr('width', actualSpriteSize)
+            .attr('x', d => this._image.xOffset(imageSet, d.number))
+            .attr('y', d => this._image.yOffset(imageSet, d.number));
 
         const enteringImages = enteringNodes
             .append('image');
@@ -116,10 +115,12 @@ class Draw {
             updatingNodes.select('image'));
 
         mergedImages
-            .attr('href', this._model.spriteUrl)
+            .attr('href', d => this._image.spriteUrl(imageSet, d.number))
             .attr('transform', d => {
-                const x = -this._xSpriteOffset(d.number) * spriteScale;
-                const y = -this._ySpriteOffset(d.number) * spriteScale;
+                const x = spriteScale *
+                    -this._image.xOffset(imageSet, d.number);
+                const y = spriteScale *
+                    -this._image.yOffset(imageSet, d.number);
                 return `translate(${x},${y}) scale(${spriteScale})`;
             });
 
@@ -166,14 +167,6 @@ class Draw {
         const targetFraction = 0.5;
         const areaPerSprite = (totalArea * targetFraction) / nodeCount;
         return Math.sqrt(areaPerSprite);
-    }
-
-    _xSpriteOffset(index) {
-        return ((index - 1) % SPRITE_COLUMNS) * this._model.actualSpriteSize;
-    }
-
-    _ySpriteOffset(index) {
-        return (Math.floor((index - 1) / SPRITE_COLUMNS)) * this._model.actualSpriteSize;
     }
 
     _handleMousemove(d) {

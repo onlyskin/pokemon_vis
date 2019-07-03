@@ -50,7 +50,9 @@ class Data {
                 this._loadedPokemon[name] = LOADING;
                 setTimeout(async () => {
                     try {
-                        const pokemon = await this._pokedex.getPokemonByName(name);
+                        const pokemon = await this._pokedex
+                            .getPokemonByName(name);
+
                         this._loadedPokemon[name] = pokemon;
                         if (!this._pendingRedraw) {
                             this._pendingRedraw = true;

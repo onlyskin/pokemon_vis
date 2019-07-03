@@ -13,8 +13,8 @@ const { ForceData } = require('./force_data');
 const { Search } = require('./search');
 
 const Visualisation = {
-    oncreate: ({ dom, attrs: { draw } }) => draw.render(dom),
-    onupdate: ({ dom, attrs: { draw } }) => draw.render(dom),
+    oncreate: ({ dom, attrs: { draw, imageSet } }) => draw.render(dom, imageSet),
+    onupdate: ({ dom, attrs: { draw, imageSet } }) => draw.render(dom, imageSet),
     view: () => m('svg.w-100.h-100'),
 };
 
@@ -90,20 +90,20 @@ const Page = {
                 )),
             ),
         ),
-        m(Visualisation, { draw }),
+        m(Visualisation, { draw, imageSet: model.imageSet }),
     ),
 };
 
 const generation = new Generation();
-const image = new Image();
+const image = new Image(generation);
 const search = new Search(generation);
 const model = new Model(m.redraw, generation, image);
 const forceData = new ForceData();
 const pokedex = new Pokedex({ protocol: 'https' });
 const data_provider = new Data(pokedex, m.redraw, model, search, generation,
-                               requestAnimationFrame.bind(window), LOAD_INTERVAL);
+    requestAnimationFrame.bind(window), LOAD_INTERVAL);
 const simulation = new Simulation(forceData, model);
-const draw = new Draw(simulation, model, data_provider);
+const draw = new Draw(simulation, model, data_provider, image);
 
 window.addEventListener('resize', () => {
     m.redraw();

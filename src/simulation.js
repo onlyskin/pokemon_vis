@@ -4,6 +4,7 @@ class Simulation {
     constructor(forceData, model) {
         this._forceData = forceData;
         this._model = model;
+        this._previousThreshold = this._model.threshold;
         this._simulation = d3.forceSimulation()
             .force('x', d3.forceX().strength(() => 0.005).x(0))
             .force('y', d3.forceY().strength(() => 0.005).y(0))
@@ -19,12 +20,18 @@ class Simulation {
     }
 
     updateData(pokemons) {
+        const currentThreshold = this._model.threshold;
         const forceData = this._forceData.forceFrom(
             pokemons,
-            this.nodes,
-            this.links,
-            this._model.threshold
+            {
+                nodes: this.nodes,
+                links: this.links,
+                threshold: this._previousThreshold,
+            },
+            currentThreshold,
         );
+
+        this._previousThreshold = currentThreshold;
 
         this._simulation.nodes(forceData.nodes);
         this._simulation.force('link').links(forceData.links);
