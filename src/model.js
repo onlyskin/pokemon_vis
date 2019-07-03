@@ -63,7 +63,7 @@ class Model {
     }
 
     _checkImageSet() {
-        const validImageSets = this._image.validImageSets(this.generations)
+        const validImageSets = this._image.validImageSets(this.generations);
         if (!validImageSets.includes(this.imageSet)) {
             this.imageSet = validImageSets[0];
         }

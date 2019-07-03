@@ -13,8 +13,10 @@ const { ForceData } = require('./force_data');
 const { Search } = require('./search');
 
 const Visualisation = {
-    oncreate: ({ dom, attrs: { draw, imageSet } }) => draw.render(dom, imageSet),
-    onupdate: ({ dom, attrs: { draw, imageSet } }) => draw.render(dom, imageSet),
+    oncreate: ({ dom, attrs: { draw, imageSet } }) => draw.render(
+        dom, imageSet),
+    onupdate: ({ dom, attrs: { draw, imageSet } }) => draw.render(
+        dom, imageSet),
     view: () => m('svg.w-100.h-100'),
 };
 

@@ -49,7 +49,7 @@ class Generation {
             .filter(entry => generations.has(entry[0]))
             .map(entry => entry[1].end);
         return Math.max(...ends);
-    };
+    }
 
     get generations() {
         return [ GEN_1, GEN_2, GEN_3];

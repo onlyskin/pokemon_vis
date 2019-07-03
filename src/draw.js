@@ -23,7 +23,8 @@ class Draw {
         const { height, width } = boundingDimensions(svgNode);
         const spriteSize = this._spriteSizeFrom(svgNode, pokemons.length);
         const actualSpriteSize = this._image.actualSpriteSize(imageSet);
-        const spriteScale = spriteSize / actualSpriteSize;
+        const setScale = this._image.setScale(imageSet);
+        const spriteScale = spriteSize * setScale / actualSpriteSize;
 
         svg.selectAll('.link-group')
             .data([0])
@@ -40,7 +41,11 @@ class Draw {
         this._simulation.updateDimensions(spriteSize);
         this._simulation.updateData(pokemons);
 
-        this._simulation.ontick = this._tick.bind({ svg, spriteSize });
+        this._simulation.ontick = this._tick.bind({
+            svg,
+            spriteSize,
+            setScale,
+        });
 
         svg.select('.link-group')
             .selectAll('.link')
@@ -89,7 +94,7 @@ class Draw {
 
         mergedClipPaths
             .attr('height', actualSpriteSize)
-            .attr('width', actualSpriteSize)
+            .attr('width', actualSpriteSize);
 
         const enteringClipPathRects = enteringClipPaths
             .append('rect');
@@ -130,7 +135,7 @@ class Draw {
     }
 
     _tick() {
-        const { svg, spriteSize } = this;
+        const { svg, spriteSize, setScale } = this;
 
         const offset = 0.5 * spriteSize;
         const { height, width } = boundingDimensions(svg.node());
@@ -148,8 +153,8 @@ class Draw {
                 d.x = x;
                 d.y = y;
 
-                const screenX = x - offset + 0.5 * width;
-                const screenY = y - offset + 0.5 * height;
+                const screenX = x - offset * setScale + 0.5 * width;
+                const screenY = y - offset * setScale + 0.5 * height;
                 return `translate(${screenX},${screenY})`;
             });
 
