@@ -7,7 +7,7 @@ const generation = new Generation;
 const [ GEN_1, GEN_2 ] = generation.generations;
 
 ('gets valid image sets', () => {
-    const image = new Image();
+    const image = new Image(null);
 
     o(image.validImageSets(new Set([GEN_1])))
         .deepEquals([ 'rb', 'yellow', 'gold' ]);

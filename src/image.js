@@ -8,8 +8,9 @@ const SUNMOON = 'sunmoon';
 const SPRITE_COLUMNS = 15;
 
 class Image {
-    constructor(generation) {
+    constructor(generation, imageCache) {
         this._generation = generation;
+        this._imageCache = imageCache;
         this._imageSets = {
             [TROZEI]: {
                 string: 'Trozei',
@@ -59,8 +60,18 @@ class Image {
     spriteUrl(imageSet, pokemonId) {
         const generation = this._generation
             .getGenerationPath({ id: pokemonId });
+
         const setPath = this._imageSets[imageSet].path;
-        return `${env.IMAGES_URL}/${setPath}/${generation}.png`;
+
+        if (this._imageCache.loadedHigh(setPath, generation)) {
+            return this._imageCache.high(setPath, generation);
+        }
+
+        if (this._imageCache.loadedLow(setPath, generation)) {
+            return this._imageCache.low(setPath, generation);
+        }
+
+        return this._imageCache.emptyUrl;
     }
 
     xOffset(imageSet, pokemonId) {

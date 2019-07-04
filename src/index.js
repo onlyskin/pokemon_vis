@@ -7,6 +7,7 @@ const { Draw } = require('./draw');
 const { Model } = require('./model');
 const { TYPES, LOAD_INTERVAL } = require('./constant');
 const { Generation } = require('./generation');
+const { ImageCache } = require('./image_cache');
 const { Image } = require('./image');
 const { Data } = require('./data');
 const { ForceData } = require('./force_data');
@@ -116,7 +117,8 @@ const TypeButton = {
 };
 
 const generation = new Generation();
-const image = new Image(generation);
+const imageCache = new ImageCache(m.request);
+const image = new Image(generation, imageCache);
 const search = new Search(generation);
 const model = new Model(m.redraw, generation, image);
 const forceData = new ForceData();

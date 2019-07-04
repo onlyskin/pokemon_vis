@@ -14,7 +14,9 @@
         "clearTimeout": true,
         "setTimeout": true,
         "firebaseui": true,
-        "requestAnimationFrame": true
+        "requestAnimationFrame": true,
+        "URL": true,
+        "Blob": true
     },
     "esversion": 8
 }
