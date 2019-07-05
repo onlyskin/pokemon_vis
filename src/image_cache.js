@@ -1,5 +1,6 @@
 const LOW = 'low';
 const HIGH = 'high';
+const SHINY = 'shiny';
 
 class ImageCache {
     constructor(request) {
@@ -12,8 +13,8 @@ class ImageCache {
         return this._loaded[this._imageKey(setPath, generation, LOW)];
     }
 
-    high(setPath, generation) {
-        return this._loaded[this._imageKey(setPath, generation, HIGH)];
+    high(setPath, generation, shiny) {
+        return this._loaded[this._imageKey(setPath, generation, HIGH, shiny)];
     }
 
     get emptyUrl() {
@@ -24,16 +25,17 @@ class ImageCache {
         return this._isLoaded(setPath, generation, LOW);
     }
 
-    loadedHigh(setPath, generation) {
-        return this._isLoaded(setPath, generation, HIGH);
+    loadedHigh(setPath, generation, shiny) {
+        return this._isLoaded(setPath, generation, HIGH, shiny);
     }
 
-    _imageKey(setPath, generation, quality) {
-        return `${setPath}${generation}${quality}`;
+    _imageKey(setPath, generation, quality, shiny) {
+        const shinyPart = shiny === true ? SHINY : '';
+        return `${setPath}${generation}${quality}${shinyPart}`;
     }
 
-    _isLoaded(setPath, generation, quality) {
-        const imageKey = this._imageKey(setPath, generation, quality);
+    _isLoaded(setPath, generation, quality, shiny) {
+        const imageKey = this._imageKey(setPath, generation, quality, shiny);
 
         if (this._pending[imageKey]) {
             return false;
@@ -43,19 +45,23 @@ class ImageCache {
             this._pending[imageKey] = true;
 
             this._request({
-                url: this._urlFrom(setPath, generation, quality),
+                url: this._urlFrom(setPath, generation, quality, shiny),
                 config: xhr => {
                     xhr.responseType = 'blob';
                     return xhr;
                 },
                 extract: xhr => {
-                    return URL.createObjectURL(xhr.response);
+                    return {
+                        status: xhr.status,
+                        data: URL.createObjectURL(xhr.response),
+                    };
                 },
-            }).then(data => {
-                this._loaded[imageKey] = data;
-                this._pending[imageKey] = false;
-            }).catch(e => {
-                console.warn(e);
+            }).then(extracted => {
+                if (extracted.status === 200) {
+                    this._loaded[imageKey] = extracted.data;
+                } else if (extracted.status === 404) {
+                    this._loaded[imageKey] = this.emptyUrl;
+                }
                 this._pending[imageKey] = false;
             });
 
@@ -65,8 +71,9 @@ class ImageCache {
         return true;
     }
 
-    _urlFrom(setPath, generation, quality) {
-        return `${env.IMAGES_URL}/${setPath}/${generation}-${quality}.png`;
+    _urlFrom(setPath, generation, quality, shiny) {
+        const shinyPart = shiny ? `-${SHINY}` : '';
+        return `${env.IMAGES_URL}/${setPath}${shinyPart}/${generation}-${quality}.png`;
     }
 }
 

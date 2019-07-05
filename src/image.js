@@ -8,9 +8,10 @@ const SUNMOON = 'sunmoon';
 const SPRITE_COLUMNS = 15;
 
 class Image {
-    constructor(generation, imageCache) {
+    constructor(generation, imageCache, shiny) {
         this._generation = generation;
         this._imageCache = imageCache;
+        this._shiny = shiny;
         this._imageSets = {
             [TROZEI]: {
                 string: 'Trozei',
@@ -18,6 +19,7 @@ class Image {
                 size: 128,
                 finalId: 718,
                 setScale: 1,
+                hasShiny: false,
             },
             [YELLOW]: {
                 string: 'Yellow',
@@ -25,6 +27,7 @@ class Image {
                 size: 60,
                 finalId: 151,
                 setScale: 1,
+                hasShiny: false,
             },
             [REDBLUE]: {
                 string: 'Red/Blue',
@@ -32,6 +35,7 @@ class Image {
                 size: 60,
                 finalId: 151,
                 setScale: 1,
+                hasShiny: false,
             },
             [GOLD]: {
                 string: 'Gold',
@@ -39,6 +43,7 @@ class Image {
                 size: 60,
                 finalId: 251,
                 setScale: 1,
+                hasShiny: true,
             },
             [SILVER]: {
                 string: 'Silver',
@@ -46,6 +51,7 @@ class Image {
                 size: 60,
                 finalId: 251,
                 setScale: 1,
+                hasShiny: false,
             },
             [SUNMOON]: {
                 string: 'Sun/Moon',
@@ -53,18 +59,22 @@ class Image {
                 size: 210,
                 finalId: 809,
                 setScale: 2.5,
+                hasShiny: true,
             },
         };
     }
 
     spriteUrl(imageSet, pokemonId) {
+        const imageSetData = this._imageSets[imageSet];
+        const isShiny = this._shiny.check(pokemonId) && imageSetData.hasShiny;
+
         const generation = this._generation
             .getGenerationPath({ id: pokemonId });
 
-        const setPath = this._imageSets[imageSet].path;
+        const setPath = imageSetData.path;
 
-        if (this._imageCache.loadedHigh(setPath, generation)) {
-            return this._imageCache.high(setPath, generation);
+        if (this._imageCache.loadedHigh(setPath, generation, isShiny)) {
+            return this._imageCache.high(setPath, generation, isShiny);
         }
 
         if (this._imageCache.loadedLow(setPath, generation)) {

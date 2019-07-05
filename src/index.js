@@ -122,9 +122,20 @@ const TypeButton = {
     ),
 };
 
+class Shiny {
+    constructor() {
+        this._shinyIndex = Math.floor(Math.random() * 8000);
+    }
+
+    check(pokemonId) {
+        return pokemonId === this._shinyIndex;
+    }
+}
+
+const shiny = new Shiny();
 const generation = new Generation();
 const imageCache = new ImageCache(m.request);
-const image = new Image(generation, imageCache);
+const image = new Image(generation, imageCache, shiny);
 const search = new Search(generation);
 const model = new Model(m.redraw, generation, image);
 const forceData = new ForceData();
