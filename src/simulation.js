@@ -1,7 +1,5 @@
-const d3 = require('d3');
-
 class Simulation {
-    constructor(forceData, model) {
+    constructor(d3, forceData, model) {
         this._forceData = forceData;
         this._model = model;
         this._previousThreshold = this._model.threshold;

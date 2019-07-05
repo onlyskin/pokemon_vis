@@ -1,4 +1,10 @@
 const m = require('mithril');
+
+// d3-selection must be required separately first to ensure live-bound
+// reference to d3-selection.event works
+const d3 = require('d3-selection');
+Object.assign(d3, require('d3-force'), require('d3-drag'));
+
 const { Pokedex } = require('pokeapi-js-wrapper');
 
 const { About } = require('./about');
@@ -125,8 +131,8 @@ const forceData = new ForceData();
 const pokedex = new Pokedex({ protocol: 'https' });
 const data_provider = new Data(pokedex, m.redraw, model, search, generation,
     requestAnimationFrame.bind(window), LOAD_INTERVAL);
-const simulation = new Simulation(forceData, model);
-const draw = new Draw(simulation, model, data_provider, image);
+const simulation = new Simulation(d3, forceData, model);
+const draw = new Draw(d3, simulation, model, data_provider, image);
 
 window.addEventListener('resize', () => {
     m.redraw();

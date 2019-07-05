@@ -1,5 +1,3 @@
-const d3 = require('d3');
-
 const { getIntersectingElements } = require('./coord');
 
 function boundingDimensions(svgNode) {
@@ -10,7 +8,8 @@ function boundingDimensions(svgNode) {
 }
 
 class Draw {
-    constructor(simulation, model, data_provider, image) {
+    constructor(d3, simulation, model, data_provider, image) {
+        this._d3 = d3;
         this._simulation = simulation;
         this._data_provider = data_provider;
         this._image = image;
@@ -19,7 +18,7 @@ class Draw {
     render(svgNode, imageSet) {
         const pokemons = this._data_provider.pokemons;
 
-        const svg = d3.select(svgNode);
+        const svg = this._d3.select(svgNode);
         const { height, width } = boundingDimensions(svgNode);
         const spriteSize = this._spriteSizeFrom(svgNode, pokemons.length);
         const actualSpriteSize = this._image.actualSpriteSize(imageSet);
@@ -53,9 +52,9 @@ class Draw {
             .join(
                 enter => enter
                 .append('line')
-                .attr('class', 'link')
-                .on('mousemove', d => this._handleMousemove(d))
-                .on('mouseout', () => this._removeTooltips()),
+                .attr('class', 'link'),
+                //.on('mousemove', d => this._handleMousemove(d))
+                //.on('mouseout', () => this._removeTooltips()),
                 update => update,
                 exit => exit.remove(),
             )
@@ -70,11 +69,12 @@ class Draw {
             .append('g')
             .attr('class', 'node');
 
-        enteringNodes.call(d3.drag()
+        const handlerClosure = { d3: this._d3 };
+        enteringNodes.call(this._d3.drag()
             .on("drag", function(d) {
-                const selection = d3.select(this);
-                const x = d.x = d3.event.x;
-                const y = d.y = d3.event.y;
+                const selection = handlerClosure.d3.select(this);
+                const x = d.x = handlerClosure.d3.event.x;
+                const y = d.y = handlerClosure.d3.event.y;
                 selection.attr(
                     'transform',
                     `translate(${x + 0.5 * width},${y + 0.5 * height})`,
@@ -112,9 +112,9 @@ class Draw {
             .append('image');
 
         enteringImages
-            .attr('clip-path', d => `url(#${d.name}-clip)`)
-            .on('mousemove', d => this._handleMousemove(d))
-            .on('mouseout', () => this._removeTooltips());
+            .attr('clip-path', d => `url(#${d.name}-clip)`);
+            //.on('mousemove', d => this._handleMousemove(d))
+            //.on('mouseout', () => this._removeTooltips());
 
         const mergedImages = enteringImages.merge(
             updatingNodes.select('image'));
@@ -175,8 +175,8 @@ class Draw {
     }
 
     _handleMousemove(d) {
-        const svg = d3.select('svg').node();
-        const coordinates = d3.mouse(svg);
+        const svg = this._d3.select('svg').node();
+        const coordinates = this._d3.mouse(svg);
 
         const element = getIntersectingElements(svg, coordinates)[0];
         if (element !== undefined) {
@@ -188,7 +188,7 @@ class Draw {
     }
 
     _removeTooltips() {
-        const body = d3.select('body');
+        const body = this._d3.select('body');
         body.selectAll('.tooltip').remove();
     }
 
@@ -204,7 +204,7 @@ class Draw {
             y = (d.source.y + d.target.y) / 2;
         }
 
-        const svgContainer = d3.select('body');
+        const svgContainer = this._d3.select('body');
 
         const tooltip = svgContainer.append('div')
             .attr('class', 'tooltip')

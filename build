@@ -5,13 +5,14 @@ source .env.$STAGE
 
 SRC=src
 OUT=out
-BROWSERIFY=node_modules/browserify/bin/cmd.js
+BROWSERIFY=node_modules/.bin/browserify
 TACHYONS=node_modules/tachyons/css/tachyons.min.css
+EXORCIST=node_modules/.bin/exorcist
 
 rm -rf $OUT
 mkdir -p $OUT
 
-$BROWSERIFY -o $OUT/index.bundle.js $SRC/index.js --debug
+$BROWSERIFY $SRC/index.js --debug | $EXORCIST $OUT/index.bundle.js.map > $OUT/index.bundle.js
 
 eval "cat <<EOF
 $(<index.html)
