@@ -19,5 +19,6 @@ $(<index.html)
 EOF
 " 2> /dev/null >$OUT/index.html
 cp img_trans.gif $OUT
+cp favicon.png $OUT
 cp styling.css $OUT
 cp $TACHYONS $OUT
