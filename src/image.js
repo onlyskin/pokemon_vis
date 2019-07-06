@@ -4,6 +4,7 @@ const REDBLUE = 'redblue';
 const GOLD = 'gold';
 const SILVER = 'silver';
 const SUNMOON = 'sunmoon';
+const OFFICIAL = 'official';
 
 const SPRITE_COLUMNS = 15;
 
@@ -60,6 +61,14 @@ class Image {
                 finalId: 809,
                 setScale: 2.5,
                 hasShiny: true,
+            },
+            [OFFICIAL]: {
+                string: 'Official Art',
+                path: 'official',
+                size: 120,
+                finalId: 809,
+                setScale: 1,
+                hasShiny: false,
             },
         };
     }
