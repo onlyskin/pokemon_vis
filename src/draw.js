@@ -75,10 +75,16 @@ class Draw {
                 const selection = handlerClosure.d3.select(this);
                 const x = d.x = handlerClosure.d3.event.x;
                 const y = d.y = handlerClosure.d3.event.y;
+                d.fx = x;
+                d.fy = y;
                 selection.attr(
                     'transform',
                     `translate(${x + 0.5 * width},${y + 0.5 * height})`,
                 );
+            })
+            .on("end", function(d) {
+                d.fx = null;
+                d.fy = null;
             })
         );
 
