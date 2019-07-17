@@ -5,6 +5,7 @@ const GEN_4 = 'gen_4';
 const GEN_5 = 'gen_5';
 const GEN_6 = 'gen_6';
 const GEN_7 = 'gen_7';
+const GENERATIONS = [ GEN_1, GEN_2, GEN_3, GEN_4, GEN_5, GEN_6, GEN_7 ];
 
 class Generation {
     constructor() {
@@ -91,10 +92,6 @@ class Generation {
         return Math.max(...ends);
     }
 
-    get generations() {
-        return [ GEN_1, GEN_2, GEN_3, GEN_4, GEN_5, GEN_6, GEN_7 ];
-    }
-
     getGenerationPath(pokemon) {
         const generation = this.getGeneration(pokemon);
         return this._generations[generation].path;
@@ -116,4 +113,5 @@ class Generation {
 
 module.exports = {
     Generation,
+    GENERATIONS,
 };

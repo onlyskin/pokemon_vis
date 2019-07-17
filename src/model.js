@@ -1,5 +1,6 @@
 const stream = require('mithril/stream');
 const { TYPES } = require('./constant');
+const { GENERATIONS } = require('./generation');
 
 class Model {
     constructor(redraw, generation, image) {
@@ -8,7 +9,7 @@ class Model {
         this._image = image;
 
         this._types = stream(new Set(TYPES));
-        this._generations = stream(new Set([generation.generations[0]]));
+        this._generations = stream(new Set([GENERATIONS[0]]));
         this._imageSet = stream(image.imageSets[0]);
     }
 
@@ -57,6 +58,16 @@ class Model {
             this._generations().delete(generation);
         } else {
             this._generations().add(generation);
+        }
+
+        this._checkImageSet();
+    }
+
+    focusGeneration(gen) {
+        if (this._generations().size === 1 && this._generations().has(gen)) {
+            this._generations(new Set(GENERATIONS));
+        } else {
+            this._generations(new Set([gen]));
         }
 
         this._checkImageSet();

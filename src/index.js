@@ -12,7 +12,7 @@ const { Simulation } = require('./simulation');
 const { Draw } = require('./draw');
 const { Model } = require('./model');
 const { TYPES, LOAD_INTERVAL } = require('./constant');
-const { Generation } = require('./generation');
+const { GENERATIONS, Generation } = require('./generation');
 const { ImageCache } = require('./image_cache');
 const { Image } = require('./image');
 const { Data } = require('./data');
@@ -55,15 +55,14 @@ const Page = {
             data_provider.isLoading() ? m('', 'Loading') : null,
             m(
                 '.f7.f5-ns.flex.flex-wrap',
-                generation.generations.map(gen => m(
-                    '.black.br-pill.ba.b--purple.pa1.pa2-ns.ma1',
+                GENERATIONS.map(gen => m(
+                    DoubleClickButton,
                     {
-                        class: model.isActiveGeneration(gen) ?
-                        'bg-white' :
-                        'bg-gray',
+                        text: `${generation.toString(gen)}`,
+                        isActive: model.isActiveGeneration(gen),
                         onclick: () => model.toggleGeneration(gen),
+                        ondoubleclick: () => model.focusGeneration(gen),
                     },
-                    `${generation.toString(gen)}`,
                 )),
             ),
             m(
@@ -88,21 +87,27 @@ const Page = {
             ),
             m(
                 '.f7.f5-ns.flex.flex-wrap',
-                TYPES.map(type => m(TypeButton, { type, model })),
+                TYPES.map(type => m(
+                    DoubleClickButton,
+                    {
+                        text: type,
+                        isActive: model.isActiveType(type),
+                        onclick: () => model.toggleType(type),
+                        ondoubleclick: () => model.focusType(type),
+                    }
+                )),
             ),
         ),
         m(Visualisation, { draw, imageSet: model.imageSet }),
     ),
 };
 
-const TypeButton = {
+const DoubleClickButton = {
     oninit: ({ state }) => state.pendingClick = null,
-    view: ({ state, attrs: { type, model } }) => m(
+    view: ({ state, attrs: { text, isActive, onclick, ondoubleclick } }) => m(
         '.black.br-pill.ba.b--purple.pa1.pa2-ns.ma1',
         {
-            class: model.isActiveType(type) ?
-            'bg-white' :
-            'bg-gray',
+            class: isActive ? 'bg-white' : 'bg-gray',
             onclick: e => {
                 if (state.pendingClick !== null) {
                     clearTimeout(state.pendingClick);
@@ -111,15 +116,15 @@ const TypeButton = {
 
                 if (e.detail === 1) {
                     state.pendingClick = setTimeout(() => {
-                        model.toggleType(type);
+                        onclick();
                         m.redraw();
                     }, 200);
                 } else {
-                    model.focusType(type);
+                    ondoubleclick();
                 }
             },
         },
-        type
+        text
     ),
 };
 
