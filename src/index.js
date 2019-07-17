@@ -54,9 +54,9 @@ const Page = {
             ),
             data_provider.isLoading() ? m('', 'Loading') : null,
             m(
-                '.f5.flex.flex-wrap',
+                '.f7.f5-ns.flex.flex-wrap',
                 generation.generations.map(gen => m(
-                    '.black.br-pill.ba.b--purple.pa2.ma1',
+                    '.black.br-pill.ba.b--purple.pa1.pa2-ns.ma1',
                     {
                         class: model.isActiveGeneration(gen) ?
                         'bg-white' :
@@ -87,7 +87,7 @@ const Page = {
                     ))),
             ),
             m(
-                '.f5.flex.flex-wrap',
+                '.f7.f5-ns.flex.flex-wrap',
                 TYPES.map(type => m(TypeButton, { type, model })),
             ),
         ),
@@ -98,7 +98,7 @@ const Page = {
 const TypeButton = {
     oninit: ({ state }) => state.pendingClick = null,
     view: ({ state, attrs: { type, model } }) => m(
-        '.black.br-pill.ba.b--purple.pa2.ma1',
+        '.black.br-pill.ba.b--purple.pa1.pa2-ns.ma1',
         {
             class: model.isActiveType(type) ?
             'bg-white' :
