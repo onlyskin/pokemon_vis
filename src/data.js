@@ -20,6 +20,7 @@ class Data {
         this._loadInterval = loadInterval;
 
         this._loadedPokemon = {};
+        this._loadingCount = 0;
 
         this._loadNames();
     }
@@ -44,10 +45,15 @@ class Data {
         );
     }
 
+    isLoading() {
+        return this._loadingCount > 0;
+    }
+
     async _loadNewPokemon() {
-        this._unloadedForGen()
+        this._untouchedForGen()
             .forEach((name, i) => {
                 this._loadedPokemon[name] = LOADING;
+                this._loadingCount = this._loadingCount + 1;
                 setTimeout(async () => {
                     try {
                         const pokemon = await this._pokedex
@@ -62,11 +68,12 @@ class Data {
                             });
                         }
                     } catch (e) { console.error(e); }
+                    this._loadingCount = this._loadingCount - 1;
                 }, this._loadInterval * i);
             });
     }
 
-    _unloadedForGen() {
+    _untouchedForGen() {
         return Object.entries(this._loadedPokemon)
             .filter((entry, i) => {
                 return this._isSelectedGeneration(i) && entry[1] === UNTOUCHED;

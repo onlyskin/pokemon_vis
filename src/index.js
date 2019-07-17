@@ -52,6 +52,7 @@ const Page = {
                     max: data_provider.maxSharedMoves(),
                 })
             ),
+            data_provider.isLoading() ? m('', 'Loading') : null,
             m(
                 '.f5.flex.flex-wrap',
                 generation.generations.map(gen => m(
