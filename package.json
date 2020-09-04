@@ -14,7 +14,7 @@
     "d3-drag": "^1.2.3",
     "d3-force": "^2.0.1",
     "d3-selection": "^1.4.0",
-    "mithril": "^1.1.6",
+    "mithril": "^1.1.7",
     "pokeapi-js-wrapper": "^1.1.1"
   },
   "devDependencies": {
